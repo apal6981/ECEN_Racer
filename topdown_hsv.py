@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
+from camera_processing import *
 #git test
 vidcap = cv.VideoCapture('Video200.avi')
 success,frame = vidcap.read()
@@ -69,13 +70,14 @@ while success:
     M = cv.getPerspectiveTransform(camera_points, dst)
     warped_img = cv.warpPerspective(combined, M, (IMAGE_W, IMAGE_H))
     # warped_img = cv.warpPerspective(frame, M, (IMAGE_W, IMAGE_H))
-    
+    print(binner2(combined))
     threshold = 50
     res = 5
     shape = (int(IMAGE_H/res), int(IMAGE_W/res))
     warped_img = warped_img[0:shape[0]*res, 0:shape[1]*res]   
     sh = shape[0],warped_img.shape[0]//shape[0],shape[1],warped_img.shape[1]//shape[1]
     grid = warped_img.reshape(sh).mean(-1).mean(1)
+    
 
     # grid = grid[grid >= threshold] = 255
     # grid = grid[grid <= threshold] = 0

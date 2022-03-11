@@ -20,6 +20,9 @@ threshold = 50
 res = 5
 shape = (int(IMAGE_H/res), int(IMAGE_W/res))
 
+binner2_width_res = 20
+binner2_height_res = 10
+
 
 # Process image to HSV and binarize it, returns combined lines and obstacles
 def hsv_processing(img):
@@ -54,6 +57,17 @@ def binner(img):
     warped_img = warped_img[0:shape[0]*res, 0:shape[1]*res]
     sh = shape[0],warped_img.shape[0]//shape[0],shape[1],warped_img.shape[1]//shape[1]
     return warped_img.reshape(sh).mean(-1).mean(1)
+
+# Bin the image using pixel counter
+def binner2(img):
+    bin_width = img.shape[1]//binner2_width_res
+    bin_height = img.shape[0]//binner2_height_res
+    output_array = np.zeros((binner2_height_res,binner2_width_res))
+    for row in range(binner2_height_res):
+        for column in range(binner2_width_res):
+            output_array[row][column] = cv.countNonZero(
+                img[row*bin_height:row*bin_height+bin_height,column*bin_height:column*bin_width+bin_width])
+    return np.where(output_array > 1000, 1, 0)
 
 
 
