@@ -26,7 +26,8 @@ from RealSense import *
 import numpy as np
 # import imutils
 import cv2 as cv
-import compare_LR
+import compare_LR	# Trying to stay between left and right lines
+import controller	# For driving and steering
 # import optimizer 
 from camera_processing import *
 
@@ -41,13 +42,16 @@ Car.zero(1500)      # Set car to go straight.  Change this for your car.
 Car.pid(1)          # Use PID control
 # You can use kd and kp commands to change KP and KD values.  Default values are good.
 # loop over frames from Realsense
+controller.start_driving(Car)
+
 while True:
     (time, rgb, depth, accel, gyro) = rs.getData()
     hsv_img = hsv_processing(rgb)
     top_down_img = transform_birds_eye(hsv_img)
     bins = binner(top_down_img)
 	# path = optimizer.find_path(bins)
-    direction = compare_LR.direction(bins)
+    steering_angle = compare_LR.direction(bins)
+    controller.steering(steering_angle)
 	
 del rs
 del Car
