@@ -26,6 +26,8 @@ from RealSense import *
 import numpy as np
 import imutils
 import cv2 as cv
+import compare_LR
+# import optimizer 
 from camera_processing import *
 
 rs = RealSense("/dev/video2", RS_VGA)		# RS_VGA, RS_720P, or RS_1080P
@@ -44,7 +46,9 @@ while True:
     hsv_img = hsv_processing(rgb)
     top_down_img = transform_birds_eye(hsv_img)
     bins = binner(top_down_img)
-
+	# path = optimizer.find_path(bins)
+    direction = compare_LR.direction(bins)
+	
 del rs
 del Car
 
