@@ -24,7 +24,7 @@ From the Realsense camera:
 from Arduino import Arduino
 from RealSense import *
 import numpy as np
-import imutils
+# import imutils
 import cv2 as cv
 from camera_processing import *
 
