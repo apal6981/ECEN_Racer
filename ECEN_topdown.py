@@ -31,28 +31,48 @@ import controller	# For driving and steering
 # import optimizer 
 from camera_processing import *
 
-rs = RealSense("/dev/video2", RS_VGA)		# RS_VGA, RS_720P, or RS_1080P
-writer = None
+try:
+	print("Init Camera")
+	rs = RealSense("/dev/video2", RS_VGA)		# RS_VGA, RS_720P, or RS_1080P
+	writer = None
 
-# Use $ ls /dev/tty* to find the serial port connected to Arduino
-Car = Arduino("/dev/ttyUSB0", 115200)                # Linux
-#Car = Arduino("/dev/tty.usbserial-2140", 115200)    # Mac
+	print("Init Car")
+	# Use $ ls /dev/tty* to find the serial port connected to Arduino
+	Car = Arduino("/dev/ttyUSB0", 115200)                # Linux
+	#Car = Arduino("/dev/tty.usbserial-2140", 115200)    # Mac
 
-Car.zero(1500)      # Set car to go straight.  Change this for your car.
-Car.pid(1)          # Use PID control
-# You can use kd and kp commands to change KP and KD values.  Default values are good.
-# loop over frames from Realsense
-controller.start_driving(Car)
+	Car.zero(1500)      # Set car to go straight. Change this for your car.
+	Car.pid(1)          # Use PID control
+	# You can use kd and kp commands to change KP and KD values.  Default values are good.
+	# loop over frames from Realsense
+	print("Driving Car")
+	controller.start_driving(Car)
+	print("Car started")
+	counter = 0
+	while True:
+		counter += 1
+		(time, rgb, depth, accel, gyro) = rs.getData()
+		# print("image received")
+		hsv_img = hsv_processing(rgb)
+		# print("HSV Processed")
+		top_down_img = transform_birds_eye(hsv_img)
+		# print("Perspective Transformed")
+		bins = binner(top_down_img)
+		# print("Bins calculated")
+		# path = optimizer.find_path(bins)
+		steering_angle = compare_LR.direction(bins, counter)
+		# print("Steering angle calculated")
+		controller.steering(Car, steering_angle)
+		# print("Sending steering angle")
+		if counter % 50 == 0:
+			controller.go_forward(Car, 0.8)
+			# print("Driving command sent")
+		
+except Exception as e:
+	print(e)
 
-while True:
-    (time, rgb, depth, accel, gyro) = rs.getData()
-    hsv_img = hsv_processing(rgb)
-    top_down_img = transform_birds_eye(hsv_img)
-    bins = binner(top_down_img)
-	# path = optimizer.find_path(bins)
-    steering_angle = compare_LR.direction(bins)
-    controller.steering(steering_angle)
-	
-del rs
-del Car
+finally:
+	print("Deleting Car and Camera")
+	del rs
+	del Car
 
