@@ -54,7 +54,7 @@ def transform_birds_eye(img):
 
 # Bin the image
 def binner(img):
-    warped_img = warped_img[0:shape[0]*res, 0:shape[1]*res]
+    warped_img = img[0:shape[0]*res, 0:shape[1]*res]
     sh = shape[0],warped_img.shape[0]//shape[0],shape[1],warped_img.shape[1]//shape[1]
     return warped_img.reshape(sh).mean(-1).mean(1)
 
@@ -66,8 +66,29 @@ def binner2(img):
     for row in range(binner2_height_res):
         for column in range(binner2_width_res):
             output_array[row][column] = cv.countNonZero(
-                img[row*bin_height:row*bin_height+bin_height,column*bin_height:column*bin_width+bin_width])
-    return np.where(output_array > 1000, 1, 0)
+                img[row*bin_height:row*bin_height+bin_height,column*bin_width:column*bin_width+bin_width])
+    return np.where(output_array > 170, 1, 0)
 
+# create the turn matrix
+def create_turn_matrix(w, h):
+    max_value = 20
+    matrix = np.zeros((h,w),dtype=int)
+    mid = w//2
+    for i in range(mid):
+        for j in range(h):
+            matrix[j*-1-1][(i-mid+1)*-1] = max_value-j*3-i if i < 2 else max_value-j*3-i*4.5+1
 
+    matrix = np.where(matrix < 0, 0, matrix)
+    matrix[:,mid:] = np.fliplr(matrix[:,0:mid]*-1)
+    return matrix
+
+turn_matrix = create_turn_matrix(binner2_width_res,binner2_height_res)
+
+# Turn Matrix calculator
+def turn_matrix_calc(grid):
+    return (grid * turn_matrix).astype(int)
+
+# min_max values
+def get_min_max(matrix):
+    return np.min(matrix),np.max(matrix)
 

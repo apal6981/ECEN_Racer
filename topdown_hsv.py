@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 from camera_processing import *
+# print(create_turn_matrix(20,10))
 #git test
 vidcap = cv.VideoCapture('Video200.avi')
 success,frame = vidcap.read()
@@ -70,7 +71,8 @@ while success:
     M = cv.getPerspectiveTransform(camera_points, dst)
     warped_img = cv.warpPerspective(combined, M, (IMAGE_W, IMAGE_H))
     # warped_img = cv.warpPerspective(frame, M, (IMAGE_W, IMAGE_H))
-    print(binner2(combined))
+    print("\n\n")
+    print(get_min_max(turn_matrix_calc(binner2(combined[130:,:]))))
     threshold = 50
     res = 5
     shape = (int(IMAGE_H/res), int(IMAGE_W/res))
@@ -95,7 +97,7 @@ while success:
 
     # plt.imshow(grid, origin='upper', cmap='binary')
     cv.imshow("grid", grid)
-    cv.imshow("RGB", combined)
+    cv.imshow("RGB", combined[130:,:])
     cv.imshow("warped",warped_img)
 
     cv.imshow("frame",frame)
