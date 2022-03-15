@@ -52,7 +52,7 @@ try:
         # get the min and max values of the bins of the hsv image, chop off the top of the hsv image
         turn_values = get_min_max(turn_matrix_calc(binner2(hsv_img[130:, :])))
         # chose to go left over going right
-        if turn_values[0] > abs([turn_values[1]]):
+        if turn_values[0] > abs(turn_values[1]):
             Car.steer(turn_values[0]/20*30)
         else:
             Car.steer(turn_values[1]/20*30)

@@ -2,7 +2,7 @@ from Arduino import Arduino
 import time
 
 def start_driving(Car):
-    # Car.drive(float(2))
+    Car.drive(float(2.5))
     print("Drive forward 2")
     time.sleep(1)
     # for i in range(50):
