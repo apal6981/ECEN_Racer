@@ -47,8 +47,8 @@ max_offset = 20
 def direction(grid, counter):
     y,x = grid.shape
     center_x = find_center(grid)
-    if counter % 10 == 0:
-        print("Center x:", center_x)
+    # if counter % 10 == 0:
+    #     print("Center x:", center_x)
     
     # Positive number means turn right, negative means turn left
     # Mapping direction to steering angle
@@ -60,6 +60,6 @@ def direction(grid, counter):
         steering = max_angle
     if steering <= -max_angle:
         steering = -max_angle
-    if counter % 10 == 0:
-        print("Steering: ", steering)
+    # if counter % 10 == 0:
+    #     print("Steering: ", steering)
     return steering

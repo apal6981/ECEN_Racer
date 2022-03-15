@@ -85,8 +85,13 @@ try:
 		
 		
 		if counter % 50 == 0:
+<<<<<<< HEAD
 			controller.go_forward(Car, 1.5)
 			print("Driving command sent")
+=======
+			controller.go_forward(Car, 1.2)
+			# print("Driving command sent")
+>>>>>>> 672846153f7c98786547ff471c209712786be493
 		
 except Exception as e:
 	print(e)
