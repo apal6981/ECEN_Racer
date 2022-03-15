@@ -10,27 +10,34 @@ def find_center(grid):
     left_bound = 0
     right_bound = 0
     y_spacing = 1
+    sum_center_x = 0
+    num_iter = 0
     # for j in range(starting_y, starting_y+y_spacing):
-    for i in range(2, x-2):
-        val = np.average(grid[starting_y, i-1:i+1])
-        if val >= 100 and obj_flag == False and left_bound == 0:
-            obj_flag = True
-            left_bound = i
-            if left_bound >= x/2 - 10:
-                right_bound = left_bound
-                left_bound = 0
-                break
-        if val >= 100 and obj_flag == False and left_bound != 0 and right_bound == 0:
-            obj_flag = True
-            right_bound = i
+    for j in range(y-5, y-15, -1):
+        num_iter += 1
+        for i in range(2, x-2):
+            val = np.average(grid[j, i-1:i+1])
+            if val >= 100 and obj_flag == False and left_bound == 0:
+                obj_flag = True
+                left_bound = i
+                if left_bound >= x/2 - 10:
+                    right_bound = left_bound
+                    left_bound = 0
+                    break
+            if val >= 100 and obj_flag == False and left_bound != 0 and right_bound == 0:
+                obj_flag = True
+                right_bound = i
 
-        if val <= 100 and obj_flag == True:
-            obj_flag = False
-    if right_bound == 0:
-        right_bound = x
+            if val <= 100 and obj_flag == True:
+                obj_flag = False
+        if right_bound == 0:
+            right_bound = x
+        
     # center_x_avg += (right_bound - left_bound)/2 + left_bound
     # center_x = center_x_avg/y_spacing
-    center_x = (right_bound - left_bound)/2 + left_bound
+        sum_center_x += (right_bound - left_bound)/2 + left_bound
+    center_x = sum_center_x/num_iter
+    # print("Center x", center_x)
     # print("left bound: ", left_bound)
     # print("right bound: ", right_bound)
     return int(center_x)
