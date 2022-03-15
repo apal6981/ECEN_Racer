@@ -82,7 +82,7 @@ def binner2(img):
 
 # create the turn matrix
 def create_turn_matrix(w, h):
-    max_value = 20
+    max_value = 30
     matrix = np.zeros((h,w),dtype=int)
     mid = w//2
     for i in range(mid):

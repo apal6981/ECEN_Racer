@@ -72,7 +72,7 @@ while success:
     warped_img = cv.warpPerspective(combined, M, (IMAGE_W, IMAGE_H))
     # warped_img = cv.warpPerspective(frame, M, (IMAGE_W, IMAGE_H))
     print("\n\n")
-    print(get_min_max(turn_matrix_calc(binner2(combined[130:,:]))))
+    print((turn_matrix_calc(binner2(combined[130:,:]))))
     threshold = 50
     res = 5
     shape = (int(IMAGE_H/res), int(IMAGE_W/res))
