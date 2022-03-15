@@ -31,7 +31,7 @@ import controller	# For driving and steering
 # import optimizer 
 from camera_processing import *
 
-frames_per_steering = 5
+frames_per_steering = 3
 steering_array = np.empty(frames_per_steering)
 
 try:
@@ -64,23 +64,26 @@ try:
 		# print("Bins calculated")
 		# path = optimizer.find_path(bins)
 		steering_angle = compare_LR.direction(bins, counter)
-		# if counter == 1:
-			# steering_array = np.full(frames_per_steering, steering_angle) # fill array with first value
-		# steering_array[counter % frames_per_steering] = steering_angle
+		if counter == 1:
+			steering_array = np.full(frames_per_steering, steering_angle) # fill array with first value
+		steering_array[counter % frames_per_steering] = steering_angle
+		# print("Steering Array: ", steering_array)
 		steering_command = np.average(steering_array)
-		if counter % frames_per_steering == 0:
-			print("Steering angle: ", steering_angle)
+		# if counter % frames_per_steering == 0:
+			# print("Steering angle: ", steering_angle)
 			# print("Steering angle calculated")
-		controller.steering(Car, steering_angle)
+		controller.steering(Car, steering_command)
 			# Enable for speed testing!
-		if np.abs(steering_angle) < 2:
-			Car.drive(3)
-		elif np.abs(steering_angle) < 5:
-			Car.drive(2)
-		elif np.abs(steering_angle) < 10:
-			Car.drive(1.8)
-		else:
-			Car.drive(0.8)
+		Car.drive(1)
+		# if counter % 3 == 0:
+		# 	if np.abs(steering_command) < 5:
+		# 		Car.drive(2)
+		# 	elif np.abs(steering_command) < 10:
+		# 		Car.drive(1.8)
+		# 	elif np.abs(steering_command) < 17.5:
+		# 		Car.drive(1.5)
+		# 	else:
+		# 		Car.drive(0.8)
 		# print("Sending steering angle")
 		
 		

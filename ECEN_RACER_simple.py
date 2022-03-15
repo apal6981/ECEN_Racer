@@ -54,17 +54,10 @@ try:
         print(turn_values)
         # chose to go left over going right
         if turn_values[1] > abs(turn_values[0]):
-<<<<<<< HEAD
-            Car.steer(turn_values[1]/20*30)
-            Car.drive(1.5)
-        else:
-            Car.steer(turn_values[0]/20*30)
-=======
             Car.steer(turn_values[1])
             Car.drive(1.5)
         else:
             Car.steer(turn_values[0])
->>>>>>> 9a78132f421600adc5ed8b8cec2d59bf8f0295dc
             Car.drive(1.5)
 except Exception as e:
     print("Something went wrong brother:",e.with_traceback())
