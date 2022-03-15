@@ -34,6 +34,7 @@ try:
     rs = RealSense("/dev/video2", RS_VGA)		# RS_VGA, RS_720P, or RS_1080P
     writer = None
     backup = False
+    encoder_prev = 0
     # Use $ ls /dev/tty* to find the serial port connected to Arduino
     Car = Arduino("/dev/ttyUSB0", 115200)                # Linux
     #Car = Arduino("/dev/tty.usbserial-2140", 115200)    # Mac
@@ -47,6 +48,7 @@ try:
     Car.drive(1.5)
     while True:
         (time, rgb, depth, accel, gyro) = rs.getData()
+        new_encoder = Car.encoder()
 
         # Get HSV image of rgb image
         hsv_img = hsv_processing(rgb)
@@ -54,14 +56,14 @@ try:
         turn_values = get_min_max(turn_matrix_calc(binner2(hsv_img[130:, :])))
         if backup:
             counter += 1
-            if counter < 20:
+            if counter < 60:
                 backup = False
             else:
                 continue
 
         
         print(turn_values)
-        if turn_values[0] == -30 and turn_values[1] == 30:
+        if turn_values[0] == -30 and turn_values[1] == 30 or abs(new_encoder-encoder_prev) < 50:
             Car.steer(0.0)
             Car.drive(-1.5)
             backup = True
@@ -74,6 +76,7 @@ try:
         else:
             Car.steer(turn_values[0])
             Car.drive(2-abs(turn_values[0])/20)
+        encoder_prev = new_encoder
 except Exception as e:
     print("Something went wrong brother:",e.with_traceback())
 finally:
