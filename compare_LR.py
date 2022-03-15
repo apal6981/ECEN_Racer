@@ -13,7 +13,7 @@ def find_center(grid):
     sum_center_x = 0
     num_iter = 0
     # for j in range(starting_y, starting_y+y_spacing):
-    for j in range(y-5, y-15, -1):
+    for j in range(y-5, y-10, -1):
         num_iter += 1
         for i in range(2, x-2):
             val = np.average(grid[j, i-1:i+1])
