@@ -43,7 +43,7 @@ try:
     # loop over frames from Realsense
 
     # tell car to go the lowest speed and just stay at that speed
-    Car.drive(1.3)
+    Car.drive(1.5)
     while True:
         (time, rgb, depth, accel, gyro) = rs.getData()
 
@@ -51,11 +51,14 @@ try:
         hsv_img = hsv_processing(rgb)
         # get the min and max values of the bins of the hsv image, chop off the top of the hsv image
         turn_values = get_min_max(turn_matrix_calc(binner2(hsv_img[130:, :])))
+        print(turn_values)
         # chose to go left over going right
-        if turn_values[0] > abs([turn_values[1]]):
+        if turn_values[0] > abs(turn_values[1]):
             Car.steer(turn_values[0]/20*30)
+            Car.drive(1.5)
         else:
             Car.steer(turn_values[1]/20*30)
+            Car.drive(1.5)
 except Exception as e:
     print("Something went wrong brother:",e.with_traceback())
 finally:
