@@ -33,7 +33,7 @@ Car = None
 try:
     rs = RealSense("/dev/video2", RS_VGA)		# RS_VGA, RS_720P, or RS_1080P
     writer = None
-
+    backup = False
     # Use $ ls /dev/tty* to find the serial port connected to Arduino
     Car = Arduino("/dev/ttyUSB0", 115200)                # Linux
     #Car = Arduino("/dev/tty.usbserial-2140", 115200)    # Mac

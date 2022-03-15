@@ -31,7 +31,7 @@ import controller	# For driving and steering
 # import optimizer 
 from camera_processing import *
 
-frames_per_steering = 5
+frames_per_steering = 2
 steering_array = np.empty(frames_per_steering)
 
 try:
@@ -48,9 +48,9 @@ try:
 	Car.pid(1)          # Use PID control
 	# You can use kd and kp commands to change KP and KD values.  Default values are good.
 	# loop over frames from Realsense
-	print("Driving Car")
-	controller.start_driving(Car)
-	print("Car started")
+	# print("Driving Car")
+	# controller.start_driving(Car)
+	# print("Car started")
 	counter = 0
 	while True:
 		counter += 1
@@ -67,25 +67,29 @@ try:
 		if counter == 1:
 			steering_array = np.full(frames_per_steering, steering_angle) # fill array with first value
 		steering_array[counter % frames_per_steering] = steering_angle
-		if counter % frames_per_steering == 0:
+		# print("Steering Array: ", steering_array)
+		steering_command = np.average(steering_array)
+		# if counter % frames_per_steering == 0:
+			# print("Steering angle: ", steering_angle)
 			# print("Steering angle calculated")
-			steering_command = np.average(steering_array)
-			print("Steering angle: ", steering_command)
-			controller.steering(Car, steering_command)
+		controller.steering(Car, steering_angle)
 			# Enable for speed testing!
-			# if np.abs(steering_command) < 2:
-			# 	controller.go_forward(Car, 2)
-			# elif np.abs(steering_command) < 5:
-			# 	controller.go_forward(Car, 1.5)
-			# elif np.abs(steering_command) < 10:
-			# 	controller.go_forward(Car, 1.2)
-			# else:
-			# 	controller.go_forward(Car, 0.8)
+		Car.drive(2)
+		# if counter % 3 == 0:
+		# 	if np.abs(steering_command) < 5:
+		# 		Car.drive(2)
+		# 	elif np.abs(steering_command) < 10:
+		# 		Car.drive(1.8)
+		# 	elif np.abs(steering_command) < 17.5:
+		# 		Car.drive(1.5)
+		# 	else:
+		# 		Car.drive(0.8)
 		# print("Sending steering angle")
 		
 		
-		if counter % 50 == 0:
-			controller.go_forward(Car, 1.2)
+		# if counter % 50 == 0:
+		# Car.drive(0.8)
+		# controller.go_forward(Car, 1.6)
 			# print("Driving command sent")
 		
 except Exception as e:
