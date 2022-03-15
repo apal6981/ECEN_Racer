@@ -21,6 +21,7 @@ From the Realsense camera:
 '''
 
 # import the necessary packages
+from itertools import count
 from camera_processing import *
 from Arduino import Arduino
 from RealSense import *
@@ -51,14 +52,29 @@ try:
         hsv_img = hsv_processing(rgb)
         # get the min and max values of the bins of the hsv image, chop off the top of the hsv image
         turn_values = get_min_max(turn_matrix_calc(binner2(hsv_img[130:, :])))
+        if backup:
+            counter += 1
+            if counter < 20:
+                backup = False
+            else:
+                continue
+
+        
         print(turn_values)
+        if turn_values[0] == -30 and turn_values[1] == 30:
+            Car.steer(0.0)
+            Car.drive(-1.2)
+            Car.drive(turn_values[0])
+            backup = True
+            counter = 0
+            continue
         # chose to go left over going right
         if turn_values[1] > abs(turn_values[0]):
-            Car.steer(turn_values[1])
+            Car.steer(2-turn_values[1]/20)
             Car.drive(1.5)
         else:
             Car.steer(turn_values[0])
-            Car.drive(1.5)
+            Car.drive(2-abs(turn_values[0])/20)
 except Exception as e:
     print("Something went wrong brother:",e.with_traceback())
 finally:
