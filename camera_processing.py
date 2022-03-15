@@ -82,13 +82,14 @@ def create_turn_matrix(w, h):
     matrix[:,mid:] = np.fliplr(matrix[:,0:mid]*-1)
     return matrix
 
+# Another constant
 turn_matrix = create_turn_matrix(binner2_width_res,binner2_height_res)
 
-# Turn Matrix calculator
+# Turn Matrix calculator (int)
 def turn_matrix_calc(grid):
     return (grid * turn_matrix).astype(int)
 
-# min_max values
+# min_max values (Get the min and max values)
 def get_min_max(matrix):
     return np.min(matrix),np.max(matrix)
 
