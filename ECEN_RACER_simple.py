@@ -70,16 +70,17 @@ try:
             continue
         # chose to go left over going right
         if turn_values[1] > abs(turn_values[0]):
-            Car.steer(2-turn_values[1]/20)
-            Car.drive(1.5)
+            Car.steer(turn_values[1])
+            Car.drive(2-turn_values[1]/40)
         else:
             Car.steer(turn_values[0])
-            Car.drive(2-abs(turn_values[0])/20)
+            Car.drive(2-abs(turn_values[0])/40)
 except Exception as e:
     print("Something went wrong brother:",e.with_traceback())
 finally:
     if rs is not None:
         del rs
     if Car is not None:
+        Car.drive(0)
         del Car
 
