@@ -63,18 +63,17 @@ try:
         print(turn_values)
         if turn_values[0] == -30 and turn_values[1] == 30:
             Car.steer(0.0)
-            Car.drive(-1.2)
-            Car.drive(turn_values[0])
+            Car.drive(-1.5)
             backup = True
             counter = 0
             continue
         # chose to go left over going right
         if turn_values[1] > abs(turn_values[0]):
             Car.steer(turn_values[1])
-            Car.drive(2-turn_values[1]/40)
+            Car.drive(2-turn_values[1]/20)
         else:
             Car.steer(turn_values[0])
-            Car.drive(2-abs(turn_values[0])/40)
+            Car.drive(2-abs(turn_values[0])/20)
 except Exception as e:
     print("Something went wrong brother:",e.with_traceback())
 finally:
