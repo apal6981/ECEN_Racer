@@ -2,7 +2,7 @@ import numpy as np
 
 def find_center(grid):
     y, x = grid.shape
-    starting_y = y-10
+    starting_y = y-15
     # print("Y", starting_y)
     # print(grid[starting_y, :])
     obj_flag = False
@@ -16,9 +16,9 @@ def find_center(grid):
         if val >= 100 and obj_flag == False and left_bound == 0:
             obj_flag = True
             left_bound = i
-            if left_bound >= x/2:
-                left_bound = 0
+            if left_bound >= x/2 - 10:
                 right_bound = left_bound
+                left_bound = 0
                 break
         if val >= 100 and obj_flag == False and left_bound != 0 and right_bound == 0:
             obj_flag = True

@@ -31,6 +31,9 @@ import controller	# For driving and steering
 # import optimizer 
 from camera_processing import *
 
+frames_per_steering = 5
+steering_array = np.empty(frames_per_steering)
+
 try:
 	print("Init Camera")
 	rs = RealSense("/dev/video2", RS_VGA)		# RS_VGA, RS_720P, or RS_1080P
@@ -61,9 +64,26 @@ try:
 		# print("Bins calculated")
 		# path = optimizer.find_path(bins)
 		steering_angle = compare_LR.direction(bins, counter)
-		# print("Steering angle calculated")
-		controller.steering(Car, steering_angle)
+		if counter == 1:
+			steering_array = np.full(frames_per_steering, steering_angle) # fill array with first value
+		steering_array[counter % frames_per_steering] = steering_angle
+		if counter % frames_per_steering == 0:
+			# print("Steering angle calculated")
+			steering_command = np.average(steering_array)
+			print("Steering angle: ", steering_command)
+			controller.steering(Car, steering_command)
+			# Enable for speed testing!
+			# if np.abs(steering_command) < 2:
+			# 	controller.go_forward(Car, 2)
+			# elif np.abs(steering_command) < 5:
+			# 	controller.go_forward(Car, 1.5)
+			# elif np.abs(steering_command) < 10:
+			# 	controller.go_forward(Car, 1.2)
+			# else:
+			# 	controller.go_forward(Car, 0.8)
 		# print("Sending steering angle")
+		
+		
 		if counter % 50 == 0:
 			controller.go_forward(Car, 0.8)
 			# print("Driving command sent")

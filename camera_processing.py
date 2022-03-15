@@ -23,9 +23,17 @@ shape = (int(IMAGE_H/res), int(IMAGE_W/res))
 binner2_width_res = 20
 binner2_height_res = 10
 
+def draw_points(img):
+    img = img[50:400,0:-1]
+    img = cv.resize(img, dim, interpolation = cv.INTER_AREA)
+    for point in camera_points_orig:
+        img = cv.circle(img, point,4,(0,255,0),cv.FILLED)
+    return img
 
 # Process image to HSV and binarize it, returns combined lines and obstacles
 def hsv_processing(img):
+    img = img[50:400,0:-1]
+    img = cv.resize(img, dim, interpolation = cv.INTER_AREA)
     hsvImage = cv.cvtColor(img, cv.COLOR_BGR2HSV)
     h, hsv_s, v = cv.split(hsvImage)
     ret,thresh1 = cv.threshold(hsv_s,75,255,cv.THRESH_BINARY)
@@ -50,10 +58,13 @@ def cone_chopper(img):
 
 # Top down view creater
 def transform_birds_eye(img):
+    M = cv.getPerspectiveTransform(camera_points, dst)
     return cv.warpPerspective(img, M, (IMAGE_W, IMAGE_H))
 
 # Bin the image
 def binner(img):
+    res = 5
+    shape = (int(IMAGE_H/res), int(IMAGE_W/res))
     warped_img = img[0:shape[0]*res, 0:shape[1]*res]
     sh = shape[0],warped_img.shape[0]//shape[0],shape[1],warped_img.shape[1]//shape[1]
     return warped_img.reshape(sh).mean(-1).mean(1)
