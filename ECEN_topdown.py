@@ -84,7 +84,7 @@ try:
 			elif np.abs(steering_angle) < 16.5:
 				speed = 1.3
 			else:
-				speed = 0.8
+				speed = 1
 		driving_array[counter % 3] = speed
 		avg_speed = np.average(driving_array)
 		Car.drive(avg_speed)
