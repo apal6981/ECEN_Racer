@@ -87,7 +87,7 @@ def create_turn_matrix(w, h):
     mid = w//2
     for i in range(mid):
         for j in range(h):
-            matrix[j*-1-1][(i-mid+1)*-1] = max_value-j*3-i if i < 2 else max_value-j*3-i*4.5+1
+            matrix[j*-1-1][(i-mid+1)*-1] = max_value-j*3-i if i < 2 else max_value-j*3-i*3+1
 
     matrix = np.where(matrix < 0, 0, matrix)
     matrix[:,mid:] = np.fliplr(matrix[:,0:mid]*-1)
