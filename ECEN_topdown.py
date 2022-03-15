@@ -31,7 +31,7 @@ import controller	# For driving and steering
 # import optimizer 
 from camera_processing import *
 
-frames_per_steering = 3
+frames_per_steering = 2
 steering_array = np.empty(frames_per_steering)
 
 try:
@@ -72,9 +72,9 @@ try:
 		# if counter % frames_per_steering == 0:
 			# print("Steering angle: ", steering_angle)
 			# print("Steering angle calculated")
-		controller.steering(Car, steering_command)
+		controller.steering(Car, steering_angle)
 			# Enable for speed testing!
-		Car.drive(1)
+		Car.drive(2)
 		# if counter % 3 == 0:
 		# 	if np.abs(steering_command) < 5:
 		# 		Car.drive(2)
