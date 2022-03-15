@@ -33,6 +33,7 @@ from camera_processing import *
 
 frames_per_steering = 2
 steering_array = np.empty(frames_per_steering)
+driving_array = np.ones(3)
 
 try:
 	print("Init Camera")
@@ -52,6 +53,7 @@ try:
 	# controller.start_driving(Car)
 	# print("Car started")
 	counter = 0
+	speed = 1
 	while True:
 		counter += 1
 		(time, rgb, depth, accel, gyro) = rs.getData()
@@ -74,16 +76,18 @@ try:
 			# print("Steering angle calculated")
 		controller.steering(Car, steering_angle)
 			# Enable for speed testing!
-		Car.drive(2)
-		# if counter % 3 == 0:
-		# 	if np.abs(steering_command) < 5:
-		# 		Car.drive(2)
-		# 	elif np.abs(steering_command) < 10:
-		# 		Car.drive(1.8)
-		# 	elif np.abs(steering_command) < 17.5:
-		# 		Car.drive(1.5)
-		# 	else:
-		# 		Car.drive(0.8)
+		if counter % 3 == 0:
+			if np.abs(steering_angle) < 5:
+				speed = 2.5
+			elif np.abs(steering_angle) < 10:
+				speed = 1.5
+			elif np.abs(steering_angle) < 16.5:
+				speed = 1.3
+			else:
+				speed = 1
+		driving_array[counter % 3] = speed
+		avg_speed = np.average(driving_array)
+		Car.drive(avg_speed)
 		# print("Sending steering angle")
 		
 		
@@ -97,6 +101,9 @@ except Exception as e:
 
 finally:
 	print("Deleting Car and Camera")
-	del rs
-	del Car
+	if Car is not None:
+		Car.drive(0)
+		del Car
+	if rs is not None:
+		del rs
 
