@@ -42,7 +42,7 @@ def find_center(grid):
     # print("right bound: ", right_bound)
     return int(center_x)
 
-max_angle = 20
+max_angle = 25
 max_offset = 20
 def direction(grid, counter):
     y,x = grid.shape
