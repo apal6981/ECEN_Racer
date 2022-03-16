@@ -47,9 +47,12 @@ try:
     Car.drive(1.5)
     while True:
         (time, rgb, depth, accel, gyro) = rs.getData()
+<<<<<<< HEAD
         if writer is None:
             writer = cv.VideoWriter('Video_ashton.avi', cv.VideoWriter_fourcc(*'MJPG'), 30, (rgb.shape[1], rgb.shape[0]), True)
         writer.write(rgb)
+=======
+>>>>>>> 3ec1f6fb3e088eadcee2f322de816ad5f10257cf
 
         # Get HSV image of rgb image
         hsv_img = hsv_processing(rgb)
