@@ -78,19 +78,20 @@ def binner2(img):
         for column in range(binner2_width_res):
             output_array[row][column] = cv.countNonZero(
                 img[row*bin_height:row*bin_height+bin_height,column*bin_width:column*bin_width+bin_width])
-    return np.where(output_array > 170, 1, 0)
+    return np.where(output_array > 85, 1, 0)
 
 # create the turn matrix
 def create_turn_matrix(w, h):
-    max_value = 20
+    max_value = 30
     matrix = np.zeros((h,w),dtype=int)
     mid = w//2
     for i in range(mid):
         for j in range(h):
-            matrix[j*-1-1][(i-mid+1)*-1] = max_value-j*3-i if i < 2 else max_value-j*3-i*4.5+1
+            matrix[j*-1-1][(i-mid+1)*-1] = max_value-j*2.5-i if i < 2 else max_value-j*3-i*3+1
 
     matrix = np.where(matrix < 0, 0, matrix)
     matrix[:,mid:] = np.fliplr(matrix[:,0:mid]*-1)
+
     return matrix
 
 # Another constant

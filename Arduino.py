@@ -55,7 +55,7 @@ class Arduino:
 
     def encoder(self):         # read encoder count back from Arduino
         command = "encoder" + "\n"
-        self.SerialPort.writeexcept(command.encode())
+        self.SerialPort.write(command.encode())
         return(self.SerialPort.readline())
 
     def pid(self, flag):         # read encoder count back from Arduino

@@ -13,7 +13,7 @@ def find_center(grid):
     sum_center_x = 0
     num_iter = 0
     # for j in range(starting_y, starting_y+y_spacing):
-    for j in range(y-5, y-15, -1):
+    for j in range(y-5, y-10, -1):
         num_iter += 1
         for i in range(2, x-2):
             val = np.average(grid[j, i-1:i+1])
@@ -42,13 +42,13 @@ def find_center(grid):
     # print("right bound: ", right_bound)
     return int(center_x)
 
-max_angle = 20
+max_angle = 25
 max_offset = 20
 def direction(grid, counter):
     y,x = grid.shape
     center_x = find_center(grid)
-    if counter % 10 == 0:
-        print("Center x:", center_x)
+    # if counter % 10 == 0:
+    #     print("Center x:", center_x)
     
     # Positive number means turn right, negative means turn left
     # Mapping direction to steering angle
@@ -60,6 +60,6 @@ def direction(grid, counter):
         steering = max_angle
     if steering <= -max_angle:
         steering = -max_angle
-    if counter % 10 == 0:
-        print("Steering: ", steering)
+    # if counter % 10 == 0:
+    #     print("Steering: ", steering)
     return steering

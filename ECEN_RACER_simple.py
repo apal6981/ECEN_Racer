@@ -21,6 +21,7 @@ From the Realsense camera:
 '''
 
 # import the necessary packages
+from itertools import count
 from camera_processing import *
 from Arduino import Arduino
 from RealSense import *
@@ -29,10 +30,10 @@ import numpy as np
 import cv2
 rs = None
 Car = None
+writer = None
 try:
     rs = RealSense("/dev/video2", RS_VGA)		# RS_VGA, RS_720P, or RS_1080P
-    writer = None
-
+    backup = False
     # Use $ ls /dev/tty* to find the serial port connected to Arduino
     Car = Arduino("/dev/ttyUSB0", 115200)                # Linux
     #Car = Arduino("/dev/tty.usbserial-2140", 115200)    # Mac
@@ -43,24 +44,53 @@ try:
     # loop over frames from Realsense
 
     # tell car to go the lowest speed and just stay at that speed
-    Car.drive(1.3)
+    Car.drive(1.5)
     while True:
         (time, rgb, depth, accel, gyro) = rs.getData()
+<<<<<<< HEAD
+        if writer is None:
+            writer = cv.VideoWriter('Video_ashton.avi', cv.VideoWriter_fourcc(*'MJPG'), 30, (rgb.shape[1], rgb.shape[0]), True)
+        writer.write(rgb)
+=======
+>>>>>>> 3ec1f6fb3e088eadcee2f322de816ad5f10257cf
 
         # Get HSV image of rgb image
         hsv_img = hsv_processing(rgb)
         # get the min and max values of the bins of the hsv image, chop off the top of the hsv image
         turn_values = get_min_max(turn_matrix_calc(binner2(hsv_img[130:, :])))
+        if backup:
+            counter += 1
+            Car.drive(-.5)
+            if counter > 60:
+                backup = False
+            else:
+                continue
+
+        
+        print(turn_values)
+        if turn_values[0] == -30 and turn_values[1] == 30:
+            print("Backing up")
+            Car.steer(0.0)
+            Car.drive(-.5)
+            Car.drive(turn_values[0])
+            backup = True
+            counter = 0
+            continue
         # chose to go left over going right
-        if turn_values[0] > abs([turn_values[1]]):
-            Car.steer(turn_values[0]/20*30)
+        if turn_values[1] > abs(turn_values[0]):
+            Car.steer(turn_values[1])
+            Car.drive(2-turn_values[1]/20)
         else:
-            Car.steer(turn_values[1]/20*30)
+            Car.steer(turn_values[0])
+            Car.drive(2-abs(turn_values[0])/20)
 except Exception as e:
     print("Something went wrong brother:",e.with_traceback())
 finally:
+    if writer is not None:
+        writer.release()
     if rs is not None:
         del rs
     if Car is not None:
+        Car.drive(0)
         del Car
 
