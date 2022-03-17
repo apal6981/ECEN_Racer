@@ -1,4 +1,5 @@
 *.avi
 *.png
 *.jpeg
+*.jpg
 __pycache__/
