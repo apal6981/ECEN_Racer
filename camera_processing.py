@@ -150,9 +150,9 @@ def max_columns(matrix):
 
 
 turn_values = np.arange(-29, 31, 2)
-turn_values = np.array(
-    [-30, -25, -20, -17, -14, -11, -9, -7, -5, -3, -2.5, -2, -1.5, -1, -.5, .5, 1, 1.5, 2, 2.5, 3, 5, 7, 9, 11, 14, 17,
-     20, 25, 30])
+# turn_values = np.array(
+#     [-30, -25, -20, -17, -14, -11, -9, -7, -5, -3, -2.5, -2, -1.5, -1, -.5, .5, 1, 1.5, 2, 2.5, 3, 5, 7, 9, 11, 14, 17,
+#      20, 25, 30])
 
 
 def average_turn_value(indices):
@@ -173,10 +173,12 @@ def get_consecutive_arrays(array):
 
 def check_sharp_corners(max_columns_array,array):
     if array[-1] != binner2_width_res-1 and len(array) > 1 and max_columns_array[array[-1]+1] > max_columns_array[array[-1]]*2:
-        print("sharp corner right" )
         array = np.delete(array, -1)
     if array[0] != 0 and len(array) > 1 and max_columns_array[array[0]-1] > max_columns_array[array[0]]*2:
-        print("sharp corner left")
         array = np.delete(array,0)
+    return array
 
+def get_optimal_column(max_column_array,array):
+    if max_column_array[array[0]] < 3:
+        return 15
     return array
