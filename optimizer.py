@@ -205,16 +205,16 @@ def get_slope(img):
     # path, y_step = optimizer.find_path(dmap)
     path, y_vals, grid_vals, y_step = greedy(dmap)
     num_steps = np.shape(path)[0]
-    upperbound = int(num_steps * 0.4)
+    upperbound = int(num_steps * 0.20)
     slope = ((path[upperbound]-path[1])/(y_vals[upperbound]-y_vals[1]))
     
-    plt.imshow(dmap)
-    plt.scatter(path, y_vals, color='r')
+    # plt.imshow(dmap)
+    # plt.scatter(path, y_vals, color='r')
     
-    cv.imshow("hsv", hsv_img)
-    cv.imshow("Bins", blurred)
-    cv.waitKey(2)
-    plt.pause(0.1)
-    plt.clf()
+    # cv.imshow("hsv", hsv_img)
+    # cv.imshow("Bins", blurred)
+    # cv.waitKey(2)
+    # plt.pause(0.1)
+    # plt.clf()
     # plt.show()
     return slope

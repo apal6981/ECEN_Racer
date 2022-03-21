@@ -25,6 +25,7 @@ from camera_processing import *
 from Arduino import Arduino
 from RealSense import *
 import numpy as np
+from optimizer import *
 # import imutils
 import cv2
 rs = None
@@ -49,9 +50,19 @@ try:
 
         # Get HSV image of rgb image
         hsv_img = hsv_processing(rgb)
+
         # get the min and max values of the bins of the hsv image, chop off the top of the hsv image
         turn_values = get_min_max(turn_matrix_calc(binner2(hsv_img[130:, :])))
-        print(turn_values)
+        
+        # slope = get_slope(transform_birds_eye(hsv_img))
+        print("turn values:",turn_values) #, "slope:", slope)
+        
+        # if slope > 0:
+        #     Car.steer(turn_values[0])
+        #     Car.drive(1.5)
+        # else:
+        #     Car.steer(turn_values[1])
+        #     Car.drive(1.5)
         # chose to go left over going right
         if turn_values[1] > abs(turn_values[0]):
             Car.steer(turn_values[1])

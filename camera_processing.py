@@ -8,7 +8,7 @@ OUT_H_FACTOR = 1
 output_size = 200
 dst = np.float32([[output_size, 0], [IMAGE_W - output_size, 0],[output_size, IMAGE_H * OUT_H_FACTOR], [IMAGE_W - output_size, IMAGE_H * OUT_H_FACTOR], ])
 camera_points_orig = np.array([[20,50],[640-20, 50],[80, 250], [640-80, 250]])
-camera_points_orig = np.array([[150,150],[640-150, 150],[50, 250], [640-50, 250]])
+# camera_points_orig = np.array([[150,150],[640-150, 150],[50, 250], [640-50, 250]])
 camera_points = camera_points_orig.copy()
 camera_points = camera_points.astype(np.float32)
 M = cv.getPerspectiveTransform(camera_points, dst)
@@ -21,8 +21,8 @@ threshold = 50
 res = 5
 shape = (int(IMAGE_H/res), int(IMAGE_W/res))
 
-binner2_width_res = 20
-binner2_height_res = 10
+binner2_width_res = 10
+binner2_height_res = 5
 
 def draw_points(img):
     img = img[50:400,0:-1]
@@ -45,7 +45,7 @@ def hsv_processing(img):
     obstacles = np.bitwise_and(saturation, img[:,:,2]) # Red
     ret,thresh_lines = cv.threshold(lines,175,255,cv.THRESH_BINARY)
     ret,thresh_obstacles = cv.threshold(obstacles,175,255,cv.THRESH_BINARY)
-    thresh_obstacles = cone_chopper(thresh_obstacles)
+    # thresh_obstacles = cone_chopper(thresh_obstacles)
     return np.bitwise_or(thresh_lines, thresh_obstacles)
 
 # Chop off the top of the cone to clean up the image
@@ -128,6 +128,7 @@ def create_priority_maxtrix():
 priority_matrix = create_priority_maxtrix()
 
 
+
 # multiply drive matrix and priority matrix
 def column_matrix(matrix):
     return (matrix * priority_matrix).astype(int)
@@ -169,7 +170,7 @@ def check_sharp_corners(max_columns_array,array):
 
 def get_optimal_column(max_column_array,array):
     if max_column_array[array[0]] < 3:
-        return 15
+        return 14
     return array
 
 

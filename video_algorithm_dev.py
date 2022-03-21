@@ -25,25 +25,25 @@ while True:
     matrix = turn_matrix_calc(bin_matrix)
     turn_values = get_min_max(matrix)
     print(turn_values)
-    # priority = column_matrix(bin_matrix)
-    # print("\n",priority)
-    # max_c = max_columns(priority)
-    # print(max_c)
-    # min_of_max_c = np.min(max_c)
-    # max_c_indices = np.where(max_c == min_of_max_c)[0]
-    # print(len(max_c_indices))
-    # while len(max_c_indices) < 2:
-    #     min_of_max_c += 1
-    #     print("increase")
-    #     max_c_indices = np.where(max_c == min_of_max_c)[0]
-    # print(max_c_indices)
-    # consec = get_consecutive_arrays(max_c_indices)
-    # print("conseq",consec)
+    priority = column_matrix(bin_matrix)
+    print("\n",priority)
+    max_c = max_columns(priority)
+    print(max_c)
+    min_of_max_c = np.min(max_c)
+    max_c_indices = np.where(max_c == min_of_max_c)[0]
+    print(len(max_c_indices))
+    while len(max_c_indices) < 2:
+        min_of_max_c += 1
+        print("increase")
+        max_c_indices = np.where(max_c == min_of_max_c)[0]
+    print(max_c_indices)
+    consec = get_consecutive_arrays(max_c_indices)
+    print("conseq",consec)
 
-    # sharp = check_sharp_corners(max_c,consec)
-    # print("sharp corners:",sharp)
-    # print("turn", average_turn_value(sharp))
-    print_img = draw_bins(matrix,cv.cvtColor(hsv_img[80:,:],cv.COLOR_GRAY2BGR))
+    sharp = check_sharp_corners(max_c,consec)
+    print("sharp corners:",sharp)
+    print("turn", average_turn_value(sharp))
+    print_img = draw_bins(priority,cv.cvtColor(hsv_img[80:,:],cv.COLOR_GRAY2BGR))
     # print(print_img.shape)
     # writer.write(print_img)
     cv.imshow("frame",print_img)
