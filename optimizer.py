@@ -1,6 +1,6 @@
 # Not implemented yet
 # from scipy.optimize import minimize, Bounds
-import mahotas as mh
+# import mahotas as mh
 import cv2 as cv
 
 import numpy as np
@@ -127,6 +127,26 @@ def find_path(grid):
 # Might need to implement method to pull greedy algorithm towards top to
 # avoid drift, or instead, calculate slope of line to determine steering angle
 
+def _upscan(f):
+    for i, fi in enumerate(f):
+        if fi == np.inf: continue
+        for j in range(1,i+1):
+            x = fi+j*j
+            if f[i-j] < x: break
+            f[i-j] = x
+
+def distance_transform(bitmap):
+    f = np.where(bitmap, 0.0, np.inf)
+    for i in range(f.shape[0]):
+        _upscan(f[i,:])
+        _upscan(f[i,::-1])
+    for i in range(f.shape[1]):
+        _upscan(f[:,i])
+        _upscan(f[::-1,i])
+    np.sqrt(f,f)
+    return f
+
+
 def greedy(grid):
     camera_middle_offset = 15
     height, width = grid.shape
@@ -179,7 +199,8 @@ def get_slope(img):
     ret, blurred = cv.threshold(blurred, 40, 255,cv.THRESH_BINARY)
     
     inverted = np.invert(blurred)
-    dmap = mh.distance(inverted)
+    # dmap = mh.distance(inverted)
+    dmap = distance_transform(blurred)
         
     # path, y_step = optimizer.find_path(dmap)
     path, y_vals, grid_vals, y_step = greedy(dmap)
@@ -193,5 +214,7 @@ def get_slope(img):
     cv.imshow("hsv", hsv_img)
     cv.imshow("Bins", blurred)
     cv.waitKey(2)
-    plt.show()
+    plt.pause(0.1)
+    plt.clf()
+    # plt.show()
     return slope
