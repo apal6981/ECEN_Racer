@@ -21,7 +21,6 @@ From the Realsense camera:
 '''
 
 # import the necessary packages
-from itertools import count
 from camera_processing import *
 from Arduino import Arduino
 from RealSense import *
@@ -30,10 +29,10 @@ import numpy as np
 import cv2
 rs = None
 Car = None
-writer = None
 try:
     rs = RealSense("/dev/video2", RS_VGA)		# RS_VGA, RS_720P, or RS_1080P
-    backup = False
+    writer = None
+
     # Use $ ls /dev/tty* to find the serial port connected to Arduino
     Car = Arduino("/dev/ttyUSB0", 115200)                # Linux
     #Car = Arduino("/dev/tty.usbserial-2140", 115200)    # Mac
@@ -47,33 +46,12 @@ try:
     Car.drive(1.5)
     while True:
         (time, rgb, depth, accel, gyro) = rs.getData()
-        if writer is None:
-            writer = cv.VideoWriter('Video_ashton.avi', cv.VideoWriter_fourcc(*'MJPG'), 30, (rgb.shape[1], rgb.shape[0]), True)
-        writer.write(rgb)
-
 
         # Get HSV image of rgb image
         hsv_img = hsv_processing(rgb)
         # get the min and max values of the bins of the hsv image, chop off the top of the hsv image
         turn_values = get_min_max(turn_matrix_calc(binner2(hsv_img[130:, :])))
-        if backup:
-            counter += 1
-            Car.drive(-.5)
-            if counter > 60:
-                backup = False
-            else:
-                continue
-
-        
         print(turn_values)
-        if turn_values[0] == -30 and turn_values[1] == 30:
-            print("Backing up")
-            Car.steer(0.0)
-            Car.drive(-.5)
-            Car.drive(turn_values[0])
-            backup = True
-            counter = 0
-            continue
         # chose to go left over going right
         if turn_values[1] > abs(turn_values[0]):
             Car.steer(turn_values[1])
@@ -84,11 +62,8 @@ try:
 except Exception as e:
     print("Something went wrong brother:",e.with_traceback())
 finally:
-    if writer is not None:
-        writer.release()
     if rs is not None:
         del rs
     if Car is not None:
-        Car.drive(0)
         del Car
 
