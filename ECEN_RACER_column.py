@@ -68,7 +68,9 @@ try:
 
         consec = get_consecutive_arrays(max_c_indices)
         sharp = check_sharp_corners(max_c, consec)
-        turn = average_turn_value(sharp)
+        print("\n\nturn columns:",max_c)
+        turn = average_turn_value(get_optimal_column(max_c,sharp))
+        print("turning:",turn)
         Car.steer(turn)
         Car.drive(2 - abs(turn) / 20)
 except Exception as e:
