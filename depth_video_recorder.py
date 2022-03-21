@@ -8,7 +8,7 @@ from Arduino import Arduino
 rs = None
 Car = None
 writer = None
-
+counter = 0
 try:
     rs = RealSense("/dev/video2", RS_VGA)		# RS_VGA, RS_720P, or RS_1080P
     (time, rgb, depth, accel, gyro) = rs.getData()
@@ -18,7 +18,10 @@ try:
         (time, rgb, depth, accel, gyro) = rs.getData()
         depth_writer.write(depth)
         rgb_writer.write(rgb)
+        if (counter %30 == 0):
+            cv.imwrite("depth_frame.jpg", depth)
         cv.waitKey(1)
+        counter += 1
 
 except Exception as ex:
     print("mal")
