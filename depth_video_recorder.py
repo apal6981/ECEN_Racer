@@ -21,4 +21,4 @@ try:
         cv.waitKey(1)
 
 except Exception as ex:
-    print(f"Exception!: {ex}")
+    print(f"mal")
