@@ -34,7 +34,7 @@ while(cap.isOpened()):
     hsv_img = transform_birds_eye(hsv_img)
 
     bins = binner(hsv_img)
-    bins = chop_binner(bins, 0.25) # chop off the top 25%
+    # bins = chop_binner(bins, 0.25) # chop off the top 25%
     img8 = (bins).astype('uint8')
     
     # hsv_img = hsv_img[:, 160:480]
