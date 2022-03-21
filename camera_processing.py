@@ -6,9 +6,11 @@ IMAGE_H = 250
 IMAGE_W = 640
 OUT_H_FACTOR = 1
 output_size = 200
-dst = np.float32([[output_size, 0], [IMAGE_W - output_size, 0],[output_size, IMAGE_H * OUT_H_FACTOR], [IMAGE_W - output_size, IMAGE_H * OUT_H_FACTOR], ])
+dst = np.float32([[output_size, 0], [IMAGE_W - output_size, 0], [output_size, IMAGE_H * OUT_H_FACTOR],
+                  [IMAGE_W - output_size, IMAGE_H * OUT_H_FACTOR], ])
+# camera_points_orig = np.array([[150, 150], [640 - 150, 150], [50, 250], [640 - 50, 250]])
 camera_points_orig = np.array([[20,50],[640-20, 50],[80, 250], [640-80, 250]])
-# camera_points_orig = np.array([[150,150],[640-150, 150],[50, 250], [640-50, 250]])
+
 camera_points = camera_points_orig.copy()
 camera_points = camera_points.astype(np.float32)
 M = cv.getPerspectiveTransform(camera_points, dst)

@@ -5,6 +5,7 @@ import cv2 as cv
 
 import numpy as np
 import matplotlib.pyplot as plt
+import camera_processing
 
 '''
 # New objective: maxamize point value
@@ -148,13 +149,13 @@ def distance_transform(bitmap):
 
 
 def greedy(grid):
-    camera_middle_offset = 15
+    camera_middle_offset = 2
     height, width = grid.shape
-    y_step = int(height*0.02)
+    y_step = int(height*0.06)
     mid = int(width/2)+camera_middle_offset
-    max_lat_step = int(width * 0.02)
+    max_lat_step = int(width * 0.04)
     x0 = mid
-    num_steps = 30
+    num_steps = 10
     path = []
     for i in range(1, num_steps):
         left_bound = x0 - max_lat_step
@@ -163,7 +164,7 @@ def greedy(grid):
             left_bound = 0
         if right_bound > (width-1):
             right_bound = width - 1
-        sub_array = grid[height-(i*y_step), left_bound:right_bound]
+        sub_array = grid[height-1-(i*y_step), left_bound:right_bound]
         max_idx = np.argmax(sub_array)
         shifted_max_idx = x0-max_lat_step + max_idx
         x0 = shifted_max_idx
@@ -198,23 +199,24 @@ def get_slope(img):
     blurred = cv.GaussianBlur(hsv_img, (11,11), 0)
     ret, blurred = cv.threshold(blurred, 40, 255,cv.THRESH_BINARY)
     
-    inverted = np.invert(blurred)
+    bins = camera_processing.binner(blurred)
+    # inverted = np.invert(blurred)
     # dmap = mh.distance(inverted)
-    dmap = distance_transform(blurred)
+    dmap = distance_transform(bins)
         
     # path, y_step = optimizer.find_path(dmap)
     path, y_vals, grid_vals, y_step = greedy(dmap)
     num_steps = np.shape(path)[0]
-    upperbound = int(num_steps * 0.20)
+    upperbound = int(num_steps * 1)
     slope = ((path[upperbound]-path[1])/(y_vals[upperbound]-y_vals[1]))
     
     # plt.imshow(dmap)
     # plt.scatter(path, y_vals, color='r')
     
-    # cv.imshow("hsv", hsv_img)
-    # cv.imshow("Bins", blurred)
-    # cv.waitKey(2)
-    # plt.pause(0.1)
-    # plt.clf()
+    cv.imshow("hsv", hsv_img)
+    cv.imshow("Bins", bins)
+    cv.waitKey(2)
+    plt.pause(0.1)
+    plt.clf()
     # plt.show()
     return slope
