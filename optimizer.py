@@ -149,9 +149,9 @@ def distance_transform(bitmap):
 
 
 def greedy(grid):
-    camera_middle_offset = 2
+    camera_middle_offset = 0
     height, width = grid.shape
-    y_step = int(height*0.06)
+    y_step = int(height*0.05)
     mid = int(width/2)+camera_middle_offset
     max_lat_step = int(width * 0.04)
     x0 = mid
@@ -207,16 +207,16 @@ def get_slope(img):
     # path, y_step = optimizer.find_path(dmap)
     path, y_vals, grid_vals, y_step = greedy(dmap)
     num_steps = np.shape(path)[0]
-    upperbound = int(num_steps * 1)
+    upperbound = int(num_steps * .5)
     slope = ((path[upperbound]-path[1])/(y_vals[upperbound]-y_vals[1]))
     
     # plt.imshow(dmap)
     # plt.scatter(path, y_vals, color='r')
     
-    cv.imshow("hsv", hsv_img)
-    cv.imshow("Bins", bins)
-    cv.waitKey(2)
-    plt.pause(0.1)
-    plt.clf()
+    # cv.imshow("hsv", hsv_img)
+    # cv.imshow("Bins", bins)
+    # cv.waitKey(2)
+    # plt.pause(0.1)
+    # plt.clf()
     # plt.show()
     return slope
