@@ -149,7 +149,7 @@ def distance_transform(bitmap):
 
 
 def greedy(grid):
-    camera_middle_offset = 2
+    camera_middle_offset = 0
     height, width = grid.shape
     y_step = int(height*0.06)
     max_lat_step = int(width * 0.04)
@@ -273,11 +273,19 @@ def get_slope(img):
         plt.scatter(paths[i,:], y_vals, color=colors[i%np.shape(colors)[0]])
 
     
+<<<<<<< HEAD
     cv.imshow("hsv", hsv_img)
     cv.imshow("Bins", bins)
     plt.pause(0.01)
     plt.clf()
     cv.waitKey(0)
+=======
+    # cv.imshow("hsv", hsv_img)
+    # cv.imshow("Bins", bins)
+    # cv.waitKey(2)
+    # plt.pause(0.1)
+    # plt.clf()
+>>>>>>> 87c0cdd657ba923d2d906608f9b2a1aa7845260e
     # plt.show()
     # print("Slope: ", slope)
     '''

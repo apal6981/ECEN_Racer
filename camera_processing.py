@@ -23,8 +23,8 @@ threshold = 50
 res = 5
 shape = (int(IMAGE_H / res), int(IMAGE_W / res))
 
-binner2_width_res = 10
-binner2_height_res = 5
+binner2_width_res = 20
+binner2_height_res = 10
 
 
 def draw_points(img):

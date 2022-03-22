@@ -47,6 +47,9 @@ try:
     Car.drive(1.5)
     while True:
         (time, rgb, depth, accel, gyro) = rs.getData()
+        if writer is None:
+        # initialize our video writer
+            writer = cv2.VideoWriter('ashton_derek_joint_cones.avi', cv2.VideoWriter_fourcc(*'MJPG'), 15, (rgb.shape[1], rgb.shape[0]), True)
 
         # Get HSV image of rgb image
         hsv_img = hsv_processing(rgb)
@@ -54,27 +57,32 @@ try:
         # get the min and max values of the bins of the hsv image, chop off the top of the hsv image
         turn_values = get_min_max(turn_matrix_calc(binner2(hsv_img[130:, :])))
         
-        # slope = get_slope(transform_birds_eye(hsv_img))
-        print("turn values:",turn_values) #, "slope:", slope)
+        slope = get_slope(transform_birds_eye(hsv_img))
+        print("turn values:",turn_values, "slope:", slope)
         
-        # if slope > 0:
-        #     Car.steer(turn_values[0])
-        #     Car.drive(1.5)
-        # else:
-        #     Car.steer(turn_values[1])
-        #     Car.drive(1.5)
-        # chose to go left over going right
-        if turn_values[1] > abs(turn_values[0]):
-            Car.steer(turn_values[1])
-            Car.drive(2-turn_values[1]/20)
-        else:
+        if slope > 0:
             Car.steer(turn_values[0])
             Car.drive(2-abs(turn_values[0])/20)
+        else:
+            Car.steer(turn_values[1])
+            Car.drive(2-turn_values[1]/20)
+
+        writer.write(rgb)
+        # chose to go left over going right
+        # if turn_values[1] > abs(turn_values[0]):
+        #     Car.steer(turn_values[1])
+        #     Car.drive(2-turn_values[1]/20)
+        # else:
+        #     Car.steer(turn_values[0])
+        #     Car.drive(2-abs(turn_values[0])/20)
 except Exception as e:
     print("Something went wrong brother:",e.with_traceback())
 finally:
     if rs is not None:
         del rs
     if Car is not None:
+        Car.drive(0)
         del Car
+    if writer is not None:
+        writer.release()
 
