@@ -19,7 +19,7 @@ frames_per_steering = 5
 old_steering = 0
 steering_array = np.empty(frames_per_steering)
 # try:
-cap = cv.VideoCapture('video_ashton.avi')
+cap = cv.VideoCapture('videos/ashton_derek_joint.avi')
 print("Driving Car")
 counter = 0     
 k_p = 0.8   # increase until oscillation, then half
@@ -29,7 +29,11 @@ k_d = 0.4   # increase until minimal oscillation
 
 while(cap.isOpened()):
     counter += 1
+    print("Frame: ", counter)
     ret, rgb = cap.read()
+    #frame 385-400: cone crash, should back up, check max val at that time to determin back up
+    # if counter <= 11:
+        # continue
     hsv_img = hsv_processing(rgb)
     hsv_img = transform_birds_eye(hsv_img)
 
@@ -47,7 +51,7 @@ while(cap.isOpened()):
         return img
     
     slope = optimizer.get_slope(hsv_img)
-    print("Slope: ", slope)
+    # print("Slope: ", slope)
 
     # hsv_img = border(hsv_img)
     
@@ -180,7 +184,7 @@ while(cap.isOpened()):
     steering_angle = k_p * steering_angle - k_d * (steering_angle - old_steering)
     old_steering = steering_angle
 
-    print("Steering: ", steering_angle)
+    # print("Steering: ", steering_angle)
 
 '''
 def chop_binner(bins, row_percent):

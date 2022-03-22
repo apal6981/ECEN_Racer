@@ -152,42 +152,68 @@ def greedy(grid):
     camera_middle_offset = 2
     height, width = grid.shape
     y_step = int(height*0.06)
-    mid = int(width/2)+camera_middle_offset
     max_lat_step = int(width * 0.04)
-    x0 = mid
-    num_steps = 10
-    path = []
-    for i in range(1, num_steps):
-        left_bound = x0 - max_lat_step
-        right_bound = x0 + max_lat_step
-        if left_bound < 0:
-            left_bound = 0
-        if right_bound > (width-1):
-            right_bound = width - 1
-        sub_array = grid[height-1-(i*y_step), left_bound:right_bound]
-        max_idx = np.argmax(sub_array)
-        shifted_max_idx = x0-max_lat_step + max_idx
-        x0 = shifted_max_idx
-        path.append(x0)
-    path = np.array(path)
+    num_steps = 14
+    num_routes = 5
+    mid = int(width/2)
+    
+    paths = []
+    # mid_start = [int(mid-0.2*width), mid, int(mid+0.2*width)]
+    mid_start = [int(mid-0.25*width), int(mid-0.1*width), mid, int(mid+0.1*width), int(mid+0.25*width),]
+    for n in range(num_routes):
+        
+        x0 = mid_start[n]
+        # consider setting first val to the middle
+        path = [mid, x0]
+        for i in range(1, num_steps):
+            left_bound = x0 - max_lat_step
+            right_bound = x0 + max_lat_step
+            if left_bound < 0:
+                left_bound = 0
+            if right_bound > (width-1):
+                right_bound = width - 1
+            sub_array = grid[height-1-(i*y_step), left_bound:right_bound]
+            b = sub_array[::-1]
+            right_idx = len(b) - np.argmax(b) - 1
+            left_idx = np.argmax(sub_array)
+            
+            if right_idx != left_idx:
+                max_idx = int(round((right_idx + left_idx)/2,0))
+            else:
+                max_idx = right_idx
+            
+            shifted_max_idx = x0-max_lat_step + max_idx
+            
+            if shifted_max_idx < 0:
+                shifted_max_idx = 0 
+
+            x0 = shifted_max_idx
+            path.append(x0)
+        path = np.array(path)
+        paths.append(path)
+    paths = np.array(paths)
     # print(path)
     y_vals = []
     for i in range(path.shape[0]):
         y_vals.append(height-y_step*(i+2))
     y_vals = np.array(y_vals)
-
-    grid_vals = grid[y_vals, path]
+    grid_vals = []
+    for i in range(np.shape(paths)[0]):
+        grid_vals.append(grid[y_vals, paths[i]])
     
-    return path, y_vals, grid_vals, y_step
+    grid_vals = np.array(grid_vals)
+    
+    return paths, y_vals, grid_vals, y_step
 
 # Add white borders to left and ride sides
 def border(img):
-    img[:,0] = 255
-    img[:,-1] = 255
+    img[:,0:10] = 255
+    # img[:,-1] = 255
     # img[0,:] = 255
     # img[-1,:] = 255
     return img
 
+colors = ['b', 'g', 'r', 'c', 'y', 'm', 'k', 'w']
 # Pass in hsv_img
 # Slope ranges from left(1.2) to right(-1.0) counter intuitive
 # birds eye views:
@@ -195,28 +221,66 @@ def border(img):
 def get_slope(img):
     hsv_img = img[:, 160:480]
     
-    
     blurred = cv.GaussianBlur(hsv_img, (11,11), 0)
     ret, blurred = cv.threshold(blurred, 40, 255,cv.THRESH_BINARY)
     
     bins = camera_processing.binner(blurred)
+    bins = bins[:, 13:-1]
+    # bins = border(bins)
     # inverted = np.invert(blurred)
     # dmap = mh.distance(inverted)
     dmap = distance_transform(bins)
         
     # path, y_step = optimizer.find_path(dmap)
-    path, y_vals, grid_vals, y_step = greedy(dmap)
-    num_steps = np.shape(path)[0]
-    upperbound = int(num_steps * 1)
-    slope = ((path[upperbound]-path[1])/(y_vals[upperbound]-y_vals[1]))
+    paths, y_vals, grid_vals, y_step = greedy(dmap)
+    grid_avg = grid_vals.mean(axis=1)
+    b_idx = np.argmax(grid_avg)
+    best_path = grid_avg[b_idx]
+    worst_path = np.min(grid_avg)
+
+    percent_grid_diff = np.abs(best_path-worst_path)/((best_path+worst_path)/2)
     
-    # plt.imshow(dmap)
-    # plt.scatter(path, y_vals, color='r')
+    num_steps = np.shape(paths)[1]
+    upperbound = int(num_steps * 0.8)
+
+    # consider calculating the slope from the middle
+    slopes = []
+    for i in range(np.shape(paths)[0]):
+        left_x = paths[i][upperbound]
+        # if left_x < 0:
+        #     left_x = 0
+        slopes.append((left_x-paths[i][1])/(y_vals[upperbound]-y_vals[1]))
+    
+    slopes = np.array(slopes)
+    slope = slopes[b_idx]   
+    
+    best_slope = np.max(slopes)
+    worst_slope = np.min(slopes)
+    percent_slope_diff = np.abs(best_slope-worst_slope)/((best_slope+worst_slope)/2)
+
+    if percent_grid_diff < 0.1 and np.average(slopes) < 0.2:
+        print("####### slope criteria met! #######")
+        slope = -10
+    '''
+    print("Best path:", b_idx, "Slope:", slope)
+    print("Grid avg: ", grid_avg)
+    print("Slopes:", slopes)
+    print("%_grid diff:", percent_grid_diff)
+    print("%_slope diff:", np.average(slopes))
+    plt.imshow(dmap)
+    
+    for i in range(np.shape(paths)[0]):
+        plt.scatter(paths[i,:], y_vals, color=colors[i%np.shape(colors)[0]])
+
     
     cv.imshow("hsv", hsv_img)
     cv.imshow("Bins", bins)
-    cv.waitKey(2)
-    plt.pause(0.1)
+    plt.pause(0.01)
     plt.clf()
+    cv.waitKey(0)
     # plt.show()
+    # print("Slope: ", slope)
+    '''
+    
     return slope
+    # return 0

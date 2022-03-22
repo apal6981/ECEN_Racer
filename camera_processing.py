@@ -66,7 +66,7 @@ def transform_birds_eye(img):
 
 # Bin the image
 def binner(img):
-    res = 5
+    res = 8
     shape = (int(IMAGE_H/res), int(IMAGE_W/res))
     warped_img = img[0:shape[0]*res, 0:shape[1]*res]
     sh = shape[0],warped_img.shape[0]//shape[0],shape[1],warped_img.shape[1]//shape[1]
