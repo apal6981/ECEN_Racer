@@ -39,6 +39,7 @@ class RealSense:
         self.pipeline.start(config)
         self.colorizer = rs.colorizer()
         self.bw_colorizer = rs.colorizer(2)
+        self.depth_frame = None
         # Create alignment primitive with color as its target stream:
         self.align = rs.align(rs.stream.color)
 
@@ -67,13 +68,14 @@ class RealSense:
             if rsframe.is_depth_frame():
                 rsframes = self.align.process(rsframes)
                 # Update color and depth frames:
-                depth_frame = rsframes.get_depth_frame()
+                self.depth_frame = rsframes.get_depth_frame()
                 # Convert to numpy array
-                depth = cv2.normalize(~np.asanyarray(depth_frame.get_data()), None, 255, 0, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-                # depth = np.asanyarray(self.colorizer.colorize(depth_frame).get_data())
+                depth = np.asanyarray(self.colorizer.colorize(self.depth_frame).get_data())
         return(time.time(), rgb, depth, accel, gyro)
-
+        
     def getBlackWhiteDepth(self): # Call after get Data to get additional B/W depth frame
         return np.asanyarray(self.bw_colorizer.colorize(self.depth_frame).get_data())
-
-
+    
+    def getDepthOfPixel(self, x, y): # Call after get Data with pixel coordinates to get distace in m
+        return self.depth_frame.get_distance(x, y)
+        
