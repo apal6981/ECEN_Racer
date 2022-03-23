@@ -72,5 +72,7 @@ class RealSense:
                 # depth = np.asanyarray(self.colorizer.colorize(depth_frame).get_data())
         return(time.time(), rgb, depth, accel, gyro)
 
+    def getBlackWhiteDepth(self): # Call after get Data to get additional B/W depth frame
+        return np.asanyarray(self.bw_colorizer.colorize(self.depth_frame).get_data())
 
 
