@@ -38,6 +38,7 @@ class RealSense:
         # Start streaming
         self.pipeline.start(config)
         self.colorizer = rs.colorizer()
+        self.bw_colorizer = rs.colorizer(2)
         # Create alignment primitive with color as its target stream:
         self.align = rs.align(rs.stream.color)
 
