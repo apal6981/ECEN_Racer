@@ -58,10 +58,13 @@ try:
         # print("\n\nline\n", line_matrix)
         # print("left\n", left_matrix)
         # print("right\n", right_matrix)
+
+        # slope = get_slope(transform_birds_eye(cv.bitwise_or(line_thresh,obs_thresh)))
+
         decision = left_right_line_decision(left_matrix, right_matrix, line_matrix)
         print("Decision:", decision)
         Car.steer(PARABOLIC_TURN_VALUES[decision-21])
-        Car.drive(2 - abs(PARABOLIC_TURN_VALUES[decision-21]) / 20)
+        Car.drive(3 - abs(PARABOLIC_TURN_VALUES[decision-21]) / 12)
         # if turn_values[1] > abs(turn_values[0]):
         #     Car.steer(turn_values[1])
         #     Car.drive(2 - turn_values[1] / 20)

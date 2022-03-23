@@ -293,6 +293,35 @@ def bin_value(matrix, mode="line"):
         return None
 
 
+def find_distances(line_matrix, cone_matrix):
+    column_indices = column_matrix(cone_matrix)
+    cones = get_consecutive_arrays(column_indices)
+    # if cones == [0]:
+    #     return None
+    print("cones",cones)
+    # line_coordinates = tuple(zip(np.where(line_matrix ==1)))
+    
+    # for cone in cones[:1]:
+    #     # Looking left
+    #     # get first closes row where cone is
+    #     cone_bottom_row = np.where(cone_matrix[:,cone[0]])[0]
+    #     if (cone_bottom_row) == 0:
+    #         print("no cones")
+    #         continue
+    #     line_row_indices = np.where(line_matrix[cone_bottom_row[-1],:])[0]
+    #     less_indices = np.where(line_row_indices < cone[0])[0]
+    #     left_distance = abs(cone[0]-less_indices[-1]) if (less_indices) > 0 else abs(cone[0]-0)
+
+    #     # Looking right
+    #     cone_bottom_row = np.where(cone_matrix[:,cone[-1]])[0][-1]
+    #     line_row_indices = np.where(line_matrix[cone_bottom_row,:])[0]
+    #     less_indices = np.where(line_row_indices > cone[0])[0]
+    #     right_distance = abs(cone[0]-less_indices[0]) if (less_indices) > 0 else abs(cone[0]-BIN_WIDTH)
+
+    #     print("left_distance:",left_distance, "right_distances:",right_distance)
+
+
+
 def left_right_line_decision(left, right, line):
     obs_value = bin_value(left, "left"), bin_value(right, "right")
     # right_value = bin_value(right, "right")

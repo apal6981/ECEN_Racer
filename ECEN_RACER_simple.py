@@ -45,11 +45,24 @@ try:
 
     # tell car to go the lowest speed and just stay at that speed
     Car.drive(1.5)
+    hard_turn = False
+    counter = 0
     while True:
         (time, rgb, depth, accel, gyro) = rs.getData()
-        if writer is None:
-        # initialize our video writer
-            writer = cv2.VideoWriter('ashton_derek_joint_cones.avi', cv2.VideoWriter_fourcc(*'MJPG'), 15, (rgb.shape[1], rgb.shape[0]), True)
+        # if writer is None:
+        # # initialize our video writer
+        #     writer = None #cv2.VideoWriter('ashton_derek_joint_cones.avi', cv2.VideoWriter_fourcc(*'MJPG'), 15, (rgb.shape[1], rgb.shape[0]), True)
+
+        if hard_turn:
+            counter += 1
+            if counter > 10:
+                hard_turn = False
+                counter = 0
+                print("going back to normal")
+                continue
+            Car.steer(30)
+            Car.drive(1)
+            continue
 
         # Get HSV image of rgb image
         hsv_img = hsv_processing(rgb)
@@ -59,6 +72,12 @@ try:
         
         slope = get_slope(transform_birds_eye(hsv_img))
         print("turn values:",turn_values, "slope:", slope)
+
+        if slope == -10:
+            Car.steer(30)
+            Car.drive(1)
+            hard_turn = True
+            continue
         
         if slope > 0:
             Car.steer(turn_values[0])
@@ -67,7 +86,9 @@ try:
             Car.steer(turn_values[1])
             Car.drive(2-turn_values[1]/20)
 
-        writer.write(rgb)
+        
+
+        # writer.write(rgb)
         # chose to go left over going right
         # if turn_values[1] > abs(turn_values[0]):
         #     Car.steer(turn_values[1])

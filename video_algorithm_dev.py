@@ -5,7 +5,7 @@ from camera_processing import *
 
 # print(create_turn_matrix(20,10))
 # git test
-vidcap = cv.VideoCapture('video_ashton.avi')
+vidcap = cv.VideoCapture('ashton_derek_joint_cones.avi')
 count = 0
 
 IMAGE_H = 250
@@ -55,6 +55,7 @@ while True:
     print("right\n",right_matrix)
     decision = left_right_line_decision(left_matrix,right_matrix,line_matrix)
     print("Decision:",decision)
+    find_distances(line_bin,obs_bin)
 
     line_img = draw_bins2(line_matrix,cv.cvtColor(line_thresh[:,:],cv.COLOR_GRAY2BGR))
     cv.imshow("lines",line_img)
