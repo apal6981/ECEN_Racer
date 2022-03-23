@@ -63,17 +63,29 @@ try:
     k_p = 0.8
     k_d = 0.1
 
+    accel_array = []
+    gyro_array = []
+
+    record = False # Change to record video
+    vid_name = "derek_pd_greedy"
+    video_name = str(vid_name + ".avi")
+    np_name = str(vid_name + ".npy")
+
     while True:
         counter += 1
         (time, rgb, depth, accel, gyro) = rs.getData()
+        
 
-        # if writer is None:
-        #     writer = cv.VideoWriter('Video_derek_pd_greedy.avi', cv.VideoWriter_fourcc(*'MJPG'), fps, (rgb.shape[1], rgb.shape[0]), True)
-		# 	# writer_depth = cv.VideoWriter('Video_derek_D.avi', cv.VideoWriter_fourcc(*'MJPG'), fps, (depth.shape[1], depth.shape[0]), True)
-		# 	# cv.imwrite("first_depth.jpg", depth)
+        if writer is None and record == True:
+            writer = cv.VideoWriter(video_name, cv.VideoWriter_fourcc(*'MJPG'), fps, (rgb.shape[1], rgb.shape[0]), True)
+			# writer_depth = cv.VideoWriter('Video_derek_D.avi', cv.VideoWriter_fourcc(*'MJPG'), fps, (depth.shape[1], depth.shape[0]), True)
+			# cv.imwrite("first_depth.jpg", depth)
 
-        # writer.write(rgb)
-		# writer_depth.write(depth)
+        if record == True:
+            writer.write(rgb)
+            # writer_depth.write(depth)
+            accel_array.append(accel)
+            gyro_array.append(gyro)
 
         hsv_img = hsv_processing(rgb)
         hsv_img = transform_birds_eye(hsv_img)
@@ -83,42 +95,45 @@ try:
         # ret, blurred = cv.threshold(blurred, 40, 255,cv.THRESH_BINARY)
 
         slope, grid_avg = optimizer.get_slope_single(hsv_img)
-        steering_angle, speed = optimizer.get_steering(slope, grid_avg)
+        steering_angle, speed, old_steering = optimizer.get_steering(slope, grid_avg, old_steering, counter)
+        
+        
         # steering_angle = compare_LR.direction(bins, counter)
-        if (counter == 0):
-            old_steering = steering_angle
+        
+        # if (counter == 1):
+        #     old_steering = steering_angle
 
         # print("line 91")
-        steering_angle = k_p * steering_angle + k_d * (steering_angle - old_steering)
-        old_steering = steering_angle
+        # steering_angle = k_p * steering_angle + k_d * (steering_angle - old_steering)
+        # old_steering = steering_angle
         # print("line 94")
         if counter % 10 == 0:
             print("Steering: ", steering_angle)
 
         controller.steering(Car, steering_angle)
 
-        # if steering_angle > 7:
-            # speed = 2
-        # else:
-            # speed = 2
-        Car.drive(2 - abs(steering_angle) / 20)
-        # Car.drive(speed)
+        Car.drive(speed)
 		# writer.write(rgb)
 		# writer_depth.write(depth)
-		# print("Sending steering angle")
 		
 except Exception as e:
 	print(e.with_traceback())
     # print(e)
 
 finally:
-	print("Deleting Car and Camera")
-	if Car is not None:
-		Car.drive(0)
-		del Car
-	if rs is not None:
-		del rs
-	if writer is not None:
-		writer.release()
+    if record == True:
+        accel_array = np.array(accel_array)
+        gyro_array = np.array(gyro_array)
+        with open(np_name, 'wb') as f:
+            np.save(f, accel_array)
+            np.save(f, gyro_array)
+    print("Deleting Car and Camera")
+    if Car is not None:
+    	Car.drive(0)
+    	del Car
+    if rs is not None:
+    	del rs
+    if writer is not None:
+    	writer.release()
 		# writer_depth.release()
 

@@ -361,7 +361,7 @@ def get_slope_single(img):
     upperbound = 5 #int(num_steps * 0.5)
     left_x = path[upperbound]
     slope = (left_x-path[0])/(y_vals[upperbound]-y_vals[0])
-    ''' 
+    
     # print("Best path:", b_idx, "Slope:", slope)
     # print("Slope:", round(slope,2), "Grid avg:", round(grid_avg,2))
     # print("%_grid diff:", percent_grid_diff)
@@ -376,7 +376,7 @@ def get_slope_single(img):
     plt.pause(0.1)
     plt.clf()
     cv.waitKey(0)
-    '''
+    
     # plt.show()
     # print("Slope: ", slope)
     
@@ -395,8 +395,10 @@ max_slope = 2
 max_grid = 20
 slope_step = max_steering/max_slope
 grid_step = max_steering/max_grid
-
-def get_steering(slope, grid_avg):
+k_p = 0.8
+k_d = 0.1
+old_steering = 0
+def get_steering(slope, grid_avg, old_steering, counter):
     max_speed = 2
     steering = 0
     speed = 0
@@ -415,10 +417,12 @@ def get_steering(slope, grid_avg):
     steering_grid = 1/grid_avg * grid_step
     steering = steering_slope
     # steering = (steering_slope + steering_grid)/2
-    if grid_avg > 12: # 20
+    if grid_avg > 12 and (slope) > 1.8: # 20
+        steering = steering / 5
+    elif grid_avg > 12:
         steering = steering / 7
     elif grid_avg > 8:  # 13
-        steering = steering / 3
+        steering = steering / 4
     elif grid_avg > 4: # 7
         steering = steering / 2
     elif grid_avg > 2: # 5
@@ -432,6 +436,23 @@ def get_steering(slope, grid_avg):
     steering *= -1
     steering = int(steering)
     print("Steering:", round(steering,2), "Grid avg:", grid_avg)
-    return steering, 1.0
+
+    # PD Implementation
+    if counter == 1:
+        old_steering = steering
+    steering = k_p * steering + k_d * (steering - old_steering)
+    old_steering = steering
+
+    # Handling speed
+    speed = 2 - abs(steering) / 20
+    if abs(steering) < 5:
+        speed = 3
+
+    # Handling backup case
+    if (abs(steering) < 6 and grid_avg < 8) or grid_avg < 4:
+        print("#### BACKUP! ####")
+        speed = 0
+
+    return steering, speed, old_steering # backup flag
 
 
