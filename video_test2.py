@@ -19,7 +19,7 @@ frames_per_steering = 5
 old_steering = 0
 steering_array = np.empty(frames_per_steering)
 # try:
-cap = cv.VideoCapture('videos/ashton_derek_joint.avi')
+cap = cv.VideoCapture('videos/Video_derek_pd_greedy.avi')
 print("Driving Car")
 counter = 0     
 k_p = 0.8   # increase until oscillation, then half
@@ -50,7 +50,8 @@ while(cap.isOpened()):
         # img[-1,:] = 255
         return img
     
-    slope = optimizer.get_slope(hsv_img)
+    slope, grid_avg = optimizer.get_slope_single(hsv_img)
+    steering, speed = optimizer.get_steering(slope, grid_avg)
     # print("Slope: ", slope)
 
     # hsv_img = border(hsv_img)

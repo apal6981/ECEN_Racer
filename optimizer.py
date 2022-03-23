@@ -147,6 +147,57 @@ def distance_transform(bitmap):
     np.sqrt(f,f)
     return f
 
+def greedy_single(grid):
+    camera_middle_offset = 0
+    height, width = grid.shape
+    y_step = int(height*0.06)
+    max_lat_step = int(width * 0.04)
+    num_steps = 14
+    num_routes = 5
+    mid = int(width/2)
+    
+    paths = []
+    
+    x0 = mid - int(width * 0.1)
+    # consider setting first val to the middle
+    path = [x0]
+    for i in range(1, num_steps):
+        left_bound = x0 - max_lat_step
+        right_bound = x0 + round(max_lat_step*1.5)
+        if left_bound < 0:
+            left_bound = 0
+        if right_bound > (width-1):
+            right_bound = width - 1
+        sub_array = grid[height-1-(i*y_step), left_bound:right_bound]
+        b = sub_array[::-1]
+        right_idx = len(b) - np.argmax(b) - 1
+        left_idx = np.argmax(sub_array)
+        
+        if right_idx != left_idx:
+            max_idx = int(round((right_idx + left_idx)/2,0))
+        else:
+            max_idx = right_idx
+        
+        shifted_max_idx = x0-max_lat_step + max_idx
+        
+        if shifted_max_idx < 0:
+            shifted_max_idx = 0 
+
+        x0 = shifted_max_idx
+        path.append(x0)
+    path = np.array(path)
+    y_vals = []
+    for i in range(path.shape[0]):
+        y_vals.append(height-y_step*(i+2))
+    y_vals = np.array(y_vals)
+    grid_vals = []
+    for i in range(np.shape(path)[0]):
+        grid_vals.append(grid[y_vals, path[i]])
+    
+    grid_vals = np.array(grid_vals)
+    
+    return path, y_vals, grid_vals, y_step
+
 
 def greedy(grid):
     camera_middle_offset = 0
@@ -207,7 +258,7 @@ def greedy(grid):
 
 # Add white borders to left and ride sides
 def border(img):
-    img[:,0:10] = 255
+    img[:,0] = 255
     # img[:,-1] = 255
     # img[0,:] = 255
     # img[-1,:] = 255
@@ -273,22 +324,114 @@ def get_slope(img):
         plt.scatter(paths[i,:], y_vals, color=colors[i%np.shape(colors)[0]])
 
     
-<<<<<<< HEAD
-    cv.imshow("hsv", hsv_img)
-    cv.imshow("Bins", bins)
-    plt.pause(0.01)
-    plt.clf()
-    cv.waitKey(0)
-=======
     # cv.imshow("hsv", hsv_img)
     # cv.imshow("Bins", bins)
     # cv.waitKey(2)
     # plt.pause(0.1)
     # plt.clf()
->>>>>>> 87c0cdd657ba923d2d906608f9b2a1aa7845260e
     # plt.show()
     # print("Slope: ", slope)
     '''
     
     return slope
     # return 0
+
+def get_slope_single(img):
+    hsv_img = img[:, 160:480]
+    
+    blurred = cv.GaussianBlur(hsv_img, (11,11), 0)
+    ret, blurred = cv.threshold(blurred, 40, 255,cv.THRESH_BINARY)
+    
+    bins = camera_processing.binner(blurred)
+    bins = bins[:, 2:-1]
+    bins = border(bins)
+    # bins = border(bins)
+    # inverted = np.invert(blurred)
+    # dmap = mh.distance(inverted)
+    dmap = distance_transform(bins)
+        
+    # path, y_step = optimizer.find_path(dmap)
+    path, y_vals, grid_vals, y_step = greedy_single(dmap)
+    grid_avg = np.average(grid_vals)
+    
+    num_steps = np.shape(path)[0]
+
+    # consider calculating the slope from the middle
+
+    upperbound = 5 #int(num_steps * 0.5)
+    left_x = path[upperbound]
+    slope = (left_x-path[0])/(y_vals[upperbound]-y_vals[0])
+    ''' 
+    # print("Best path:", b_idx, "Slope:", slope)
+    # print("Slope:", round(slope,2), "Grid avg:", round(grid_avg,2))
+    # print("%_grid diff:", percent_grid_diff)
+    # print("%_slope diff:", np.average(slopes))
+    plt.imshow(dmap)
+    
+    plt.scatter(path, y_vals, color=colors[0])
+
+    
+    cv.imshow("hsv", hsv_img)
+    cv.imshow("Bins", bins)
+    plt.pause(0.1)
+    plt.clf()
+    cv.waitKey(0)
+    '''
+    # plt.show()
+    # print("Slope: ", slope)
+    
+    
+    return slope, grid_avg
+    # return 0
+
+
+    # Average is less than 5: turn 20
+    # less than 3: turn 30
+    # if slope is vertical: turn right based on grid_avg
+    # if slope is
+
+max_steering = 25
+max_slope = 2
+max_grid = 20
+slope_step = max_steering/max_slope
+grid_step = max_steering/max_grid
+
+def get_steering(slope, grid_avg):
+    max_speed = 2
+    steering = 0
+    speed = 0
+    direction = ''
+    if slope > 0.1:
+        direction = 'L'
+    elif slope < -0.1:
+        direction = 'R'
+    else:
+        direction = 'R'
+        slope = -2.0
+
+    steering_slope = slope * slope_step * 1.5
+    if np.isposinf(grid_avg):
+        grid_avg = 100
+    steering_grid = 1/grid_avg * grid_step
+    steering = steering_slope
+    # steering = (steering_slope + steering_grid)/2
+    if grid_avg > 12: # 20
+        steering = steering / 7
+    elif grid_avg > 8:  # 13
+        steering = steering / 3
+    elif grid_avg > 4: # 7
+        steering = steering / 2
+    elif grid_avg > 2: # 5
+        steering = steering / 1.5
+    else:
+        if steering < 0:
+            steering = max_steering*-1
+        else:
+            steering = max_steering
+    
+    steering *= -1
+    steering = int(steering)
+    print("Steering:", round(steering,2), "Grid avg:", grid_avg)
+    return steering, 1.0
+
+
