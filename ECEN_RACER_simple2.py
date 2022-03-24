@@ -64,7 +64,7 @@ try:
         decision = left_right_line_decision(left_matrix, right_matrix, line_matrix)
         print("Decision:", decision)
         Car.steer(PARABOLIC_TURN_VALUES[decision-21])
-        Car.drive(3 - abs(PARABOLIC_TURN_VALUES[decision-21]) / 12)
+        Car.drive(4 - abs(PARABOLIC_TURN_VALUES[decision-21]) / 10)
         # if turn_values[1] > abs(turn_values[0]):
         #     Car.steer(turn_values[1])
         #     Car.drive(2 - turn_values[1] / 20)
