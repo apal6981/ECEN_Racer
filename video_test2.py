@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 # import imutils
 import cv2 as cv
-import optimizer
+import optimizer_clean as optimizer
 import compare_LR # Trying to stay between left and right lines
 
 import mahotas as mh
@@ -19,7 +19,9 @@ frames_per_steering = 5
 old_steering = 0
 steering_array = np.empty(frames_per_steering)
 # try:
+# cap = cv.VideoCapture('videos/derek_pd_greedy_1.avi')
 cap = cv.VideoCapture('videos/ashton_derek_joint_cones.avi')
+# cap = cv.VideoCapture('videos/ashton_derek_joint.avi')
 print("Driving Car")
 counter = 0     
 # k_p = 0.8   # increase until oscillation, then half
@@ -46,15 +48,16 @@ while(cap.isOpened()):
     img8 = (bins).astype('uint8')
     
     
-    slope, grid_avg = optimizer.get_slope_single(hsv_img)
+    # slope, grid_avg = optimizer.get_slope_single(hsv_img)
+    slope, grid_avg = optimizer.get_slope_global(hsv_img)
     steering_angle, speed, old_steering = optimizer.get_steering(slope, grid_avg, old_steering, counter)
-    
+    print("Steering:", steering_angle)
 
 
-    print("Steering: ", round(steering_angle,2), "Speed:", round(speed, 2), "Slope:", slope)
+    # print("Steering: ", round(steering_angle,2), "Speed:", round(speed, 2), "Slope:", slope)
     
-    blurred = cv.GaussianBlur(hsv_img, (11,11), 0)
-    ret, blurred = cv.threshold(blurred, 40, 255,cv.THRESH_BINARY)
+    # blurred = cv.GaussianBlur(hsv_img, (11,11), 0)
+    # ret, blurred = cv.threshold(blurred, 40, 255,cv.THRESH_BINARY)
     # cv.imshow("hsv", hsv_img)
     # cv.imshow("Bins", blurred)
     
