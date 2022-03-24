@@ -26,6 +26,7 @@ from Arduino import Arduino
 from RealSense import *
 import numpy as np
 from optimizer import *
+import time as t
 # import imutils
 import cv2
 
@@ -59,9 +60,16 @@ try:
         # slope = get_slope(transform_birds_eye(cv.bitwise_or(line_thresh,obs_thresh)))
 
         decision = turn_decision(line_bin, obs_bin)
-        print("Decision:", decision)
+        if decision > 20:
+            print("crash!!!!!!!!!!!!!")
+            Car.drive(-3)
+            Car.steer(0)
+            t.sleep(1)
+            continue
+        print("Decision:", decision, "speed:",1/250*(abs(LARGER_SIN_TURN_VALUES[decision-21])-31)**2+.75)
         Car.steer(PARABOLIC_TURN_VALUES[decision-21])
-        Car.drive(3 - abs(PARABOLIC_TURN_VALUES[decision-21]) / 12)
+        Car.drive(1/250*(abs(LARGER_SIN_TURN_VALUES[decision-21])-31)**2+.75)
+        # Car.drive(4 - abs(LARGER_SIN_TURN_VALUES[decision-21]) / 10)
         # if turn_values[1] > abs(turn_values[0]):
         #     Car.steer(turn_values[1])
         #     Car.drive(2 - turn_values[1] / 20)

@@ -45,7 +45,7 @@ while True:
     # print("turn", average_turn_value(sharp))
 
     line_thresh, obs_thresh = hsv_line_obs_processing(frame[80:,:])
-    line_bin = binner3(line_thresh, BIN_WIDTH,BIN_HEIGHT,pixel_count=200)
+    line_bin = binner3(line_thresh, BIN_WIDTH,BIN_HEIGHT,pixel_count=100)
     obs_bin = binner3(obs_thresh,BIN_WIDTH, BIN_HEIGHT,pixel_count=200)
     line_matrix = mask_bins(line_bin,"line")
     left_matrix = mask_bins(obs_bin,"left")

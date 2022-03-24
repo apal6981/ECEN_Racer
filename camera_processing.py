@@ -245,16 +245,18 @@ def create_line_turn_matrix(w, h):
     mid = w // 2
     for i in range(mid):
         for j in range(h):
-            matrix[j * -1 - 1][(i - mid + 1) * -1] = max_value - j * 4 - i if i < 1 else max_value - j * 3 - i * 3 + 1
+            matrix[j * -1 - 1][(i - mid + 1) * -1] = max_value - j * 3.5 - i if i < 1 else max_value - j * 2.5 - i * 3 + 1
 
     matrix = np.where(matrix < 0, 0, matrix)
     matrix[:, mid:] = np.fliplr(matrix[:, 0:mid] * -1)
+    # matrix[BIN_HEIGHT-2][BIN_WIDTH//2-1] = 20
+    # matrix[BIN_HEIGHT-2][BIN_WIDTH//2] = -20
     return matrix
 
 
 # needs to be created first
 def create_left_turn_matrix(w, h):
-    max_value = 15
+    max_value = 17
     matrix = np.zeros((h, w), dtype=int)
     for i in range(w):
         for j in range(h):
@@ -271,7 +273,7 @@ def create_right_turn_matrix(left_matrix):
 
 LINE_MATRIX = create_line_turn_matrix(BIN_WIDTH, BIN_HEIGHT)
 LEFT_OBS_MATRIX = create_left_turn_matrix(BIN_WIDTH, BIN_HEIGHT)
-print("left matrix:",LEFT_OBS_MATRIX)
+print("line matrix:",LINE_MATRIX)
 RIGHT_OBS_MATRIX = create_right_turn_matrix(LEFT_OBS_MATRIX)
 
 
@@ -368,8 +370,8 @@ def turn_decision(line_bin, obs_bin):
         # print("line decision:", bin_value(line_turn_matrix, "line"))
         canidates = []
         for index, individual in enumerate(cone_decisions):
-            if individual[0] == individual[1]:
-                continue
+            if individual[0] == individual[1] and individual[0] > 1 and individual[1] > 1:
+                canidates.append([index,3,individual[0]])
             if individual[0] > 1:
                 canidates.append([index, 0, individual[0]])
             if individual[1] > 1:
@@ -384,18 +386,24 @@ def turn_decision(line_bin, obs_bin):
         else:
             # first find largest gap
             line_turn = bin_value(line_turn_matrix, "line")
+            together_check = bin_value(mask_bins(obs_bin,"line"),"line")
+            # Check to see if we are about to run into something
+            if line_turn[0] == -20 or line_turn == 20 or together_check[0] == -20 or together_check == 20:
+                print("about to crash:")
+                return 100
             greatest_distance = np.argmax(np.array(canidates)[:, 2])
             best_canidate = canidates[greatest_distance]
             greatest_distance = best_canidate[0]
+            print("cone decision:",cone_decisions, canidates, best_canidate)
             if best_canidate[1] == 0:  # go left
                 if greatest_distance == 0:  # left cone
                     left_cone_turn = bin_value(left_turn_matrix[:, cones[canidates[greatest_distance][0]]], "left")
                     line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
                     if line_turn_max < 0:  # same direction
-                        # print("left same sign:", left_cone_turn, line_turn_max)
+                        print("left same sign:", left_cone_turn, line_turn_max)
                         return np.min([left_cone_turn, line_turn_max])
                     else:
-                        # print("left diff sign:", left_cone_turn)
+                        print("left diff sign:", left_cone_turn)
                         return left_cone_turn  # differing directions so cone gets preference
                 else:
                     left_cone_turn = bin_value(
@@ -404,35 +412,56 @@ def turn_decision(line_bin, obs_bin):
                     cone_choice = [left_cone_turn, right_cone_turn][np.argmax([abs(left_cone_turn), right_cone_turn])]
                     line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
                     if np.sign(cone_choice) == np.sign(line_turn_max):
-                        # print("multiple cones left same sign:", cone_choice, line_turn_max)
+                        print("multiple cones left same sign:", cone_choice, line_turn_max)
                         return line_turn_max if abs(line_turn_max) > abs(cone_choice) else cone_choice
                     else:
-                        # print("mutiple cones diff sign:", cone_choice)
+                        print("mutiple cones diff sign:", cone_choice)
                         return cone_choice
-            else:  # go right
+            elif best_canidate[1] == 1:  # go right
                 if greatest_distance - len(cone_decisions) == -1 or len(cone_decisions) == 1:  # farthest right cone
                     right_cone_turn = bin_value(right_turn_matrix[:, cones[greatest_distance]],
                                                 "right")  # this is a positive number
                     line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
                     if line_turn_max > 0:  # same direction
-                        # print("right single same sign:", right_cone_turn, line_turn_max)
+                        print("right single same sign:", right_cone_turn, line_turn_max)
                         return np.max([right_cone_turn, line_turn_max])
                     else:
-                        # print("right single diff sign:", right_cone_turn)
+                        print("right single diff sign:", right_cone_turn)
                         return right_cone_turn  # differing directions so cone gets preference
                 else:
                     left_cone_turn = bin_value(
                         left_turn_matrix[:, cones[greatest_distance+1]], "left")  # this is a negative number
                     right_cone_turn = bin_value(left_turn_matrix[:, cones[greatest_distance]], "right")
-                    cone_choice = [left_cone_turn, right_cone_turn][np.argmax([abs(left_cone_turn), right_cone_turn])]
+                    cone_choice = [left_cone_turn, right_cone_turn][np.argmin([abs(left_cone_turn), right_cone_turn])]
                     line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
                     if np.sign(cone_choice) == np.sign(line_turn_max):
-                        # print("right mulitple same sign:", cone_choice, line_turn_max)
+                        print("right mulitple same sign:", cone_choice, line_turn_max)
                         return line_turn_max if abs(line_turn_max) > abs(cone_choice) else cone_choice
                     else:
-                        # print("right mulitiple diff sign:", cone_choice, line_turn_max)
+                        print("right mulitiple diff sign:", cone_choice, line_turn_max)
                         return cone_choice
-                pass
+            else: # turn directions are the same so choose the smallest turn angle
+                # if len(cones) == 1: # only one cone
+                right_cone_turn = bin_value(right_turn_matrix[:, cones[greatest_distance]],
+                                            "right")  # this is a positive number
+                left_cone_turn = bin_value(left_turn_matrix[:, cones[greatest_distance]], "left")
+                cone_choice = [left_cone_turn, right_cone_turn][np.argmin([abs(left_cone_turn),right_cone_turn])]
+                # print("cone decision:",cone_decisions, canidates, best_canidate)
+                if cone_choice < 0: # going left, choose max of cone or line left turning
+                    print("same turn going left")
+                    if abs(cone_choice) < line_turn[1]: # i actually need to go right
+                        print("jk, going right")
+                        return line_turn[1]
+                    return np.min([cone_choice,line_turn[0]])
+                else:
+                    print("same_turn, going right")
+                    if cone_choice < abs(line_turn[0]):
+                        print("jk, going left")
+                        return line_turn[0]
+                    return np.max([cone_choice,line_turn[1]])
+                # if greatest_distance == 0: # far left cone
+
+
         # print(canidates)
 
 
@@ -473,4 +502,4 @@ def create_parabolic_turn_values():
 SIN_TURN_VALUES = create_sin_turn_values()
 LARGER_SIN_TURN_VALUES = create_larger_sin_turn_values()
 PARABOLIC_TURN_VALUES = create_parabolic_turn_values()
-print(PARABOLIC_TURN_VALUES)
+print(LARGER_SIN_TURN_VALUES)
