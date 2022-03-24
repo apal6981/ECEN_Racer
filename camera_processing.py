@@ -355,17 +355,17 @@ def turn_decision(line_bin, obs_bin):
     column_indices = np.where(max_columns(obs_bin) == 1)[0]
     # print("column indices", column_indices)
     cones = get_consecutive_arrays(column_indices)
-    print("cones:", cones)
+    # print("cones:", cones)
     cone_decisions = find_distances(line_bin, obs_bin, cones)
     if cone_decisions is None:
         line_turn = bin_value(line_turn_matrix, "line")
         if abs(line_turn[0]) == line_turn[1]:
-            print("driving panic")
+            # print("driving panic")
             return line_turn[1]
         return line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
     else:
-        print("Cone Distances:", cone_decisions)
-        print("line decision:", bin_value(line_turn_matrix, "line"))
+        # print("Cone Distances:", cone_decisions)
+        # print("line decision:", bin_value(line_turn_matrix, "line"))
         canidates = []
         for index, individual in enumerate(cone_decisions):
             if individual[0] == individual[1]:
@@ -374,11 +374,11 @@ def turn_decision(line_bin, obs_bin):
                 canidates.append([index, 0, individual[0]])
             if individual[1] > 1:
                 canidates.append([index, 1, individual[1]])
-        print("Canidates:",canidates)
+        # print("Canidates:",canidates)
         if len(canidates) == 0:  # Just do normal noodle following stuff
             line_turn = bin_value(line_turn_matrix, "line")
             if abs(line_turn[0]) == line_turn[1]:
-                print("driving panic")
+                # print("driving panic")
                 return line_turn[1]
             return line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
         else:
@@ -392,10 +392,10 @@ def turn_decision(line_bin, obs_bin):
                     left_cone_turn = bin_value(left_turn_matrix[:, cones[canidates[greatest_distance][0]]], "left")
                     line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
                     if line_turn_max < 0:  # same direction
-                        print("left same sign:", left_cone_turn, line_turn_max)
+                        # print("left same sign:", left_cone_turn, line_turn_max)
                         return np.min([left_cone_turn, line_turn_max])
                     else:
-                        print("left diff sign:", left_cone_turn)
+                        # print("left diff sign:", left_cone_turn)
                         return left_cone_turn  # differing directions so cone gets preference
                 else:
                     left_cone_turn = bin_value(
@@ -404,10 +404,10 @@ def turn_decision(line_bin, obs_bin):
                     cone_choice = [left_cone_turn, right_cone_turn][np.argmax([abs(left_cone_turn), right_cone_turn])]
                     line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
                     if np.sign(cone_choice) == np.sign(line_turn_max):
-                        print("multiple cones left same sign:", cone_choice, line_turn_max)
+                        # print("multiple cones left same sign:", cone_choice, line_turn_max)
                         return line_turn_max if abs(line_turn_max) > abs(cone_choice) else cone_choice
                     else:
-                        print("mutiple cones diff sign:", cone_choice)
+                        # print("mutiple cones diff sign:", cone_choice)
                         return cone_choice
             else:  # go right
                 if greatest_distance - len(cone_decisions) == -1 or len(cone_decisions) == 1:  # farthest right cone
@@ -415,10 +415,10 @@ def turn_decision(line_bin, obs_bin):
                                                 "right")  # this is a positive number
                     line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
                     if line_turn_max > 0:  # same direction
-                        print("right single same sign:", right_cone_turn, line_turn_max)
+                        # print("right single same sign:", right_cone_turn, line_turn_max)
                         return np.max([right_cone_turn, line_turn_max])
                     else:
-                        print("right single diff sign:", right_cone_turn)
+                        # print("right single diff sign:", right_cone_turn)
                         return right_cone_turn  # differing directions so cone gets preference
                 else:
                     left_cone_turn = bin_value(
@@ -427,13 +427,13 @@ def turn_decision(line_bin, obs_bin):
                     cone_choice = [left_cone_turn, right_cone_turn][np.argmax([abs(left_cone_turn), right_cone_turn])]
                     line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
                     if np.sign(cone_choice) == np.sign(line_turn_max):
-                        print("right mulitple same sign:", cone_choice, line_turn_max)
+                        # print("right mulitple same sign:", cone_choice, line_turn_max)
                         return line_turn_max if abs(line_turn_max) > abs(cone_choice) else cone_choice
                     else:
-                        print("right mulitiple diff sign:", cone_choice, line_turn_max)
+                        # print("right mulitiple diff sign:", cone_choice, line_turn_max)
                         return cone_choice
                 pass
-        print(canidates)
+        # print(canidates)
 
 
 def left_right_line_decision(left, right, line):
