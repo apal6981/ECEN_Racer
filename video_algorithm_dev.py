@@ -45,18 +45,21 @@ while True:
     # print("turn", average_turn_value(sharp))
 
     line_thresh, obs_thresh = hsv_line_obs_processing(frame[80:,:])
-    line_bin = binner3(line_thresh, BIN_WIDTH,BIN_HEIGHT,pixel_count=350)
-    obs_bin = binner3(obs_thresh,BIN_WIDTH, BIN_HEIGHT,pixel_count=100)
+    line_bin = binner3(line_thresh, BIN_WIDTH,BIN_HEIGHT,pixel_count=200)
+    obs_bin = binner3(obs_thresh,BIN_WIDTH, BIN_HEIGHT,pixel_count=200)
     line_matrix = mask_bins(line_bin,"line")
     left_matrix = mask_bins(obs_bin,"left")
     right_matrix = mask_bins(obs_bin,"right")
     print("\n\nline\n",line_matrix)
     print("left\n",left_matrix)
     print("right\n",right_matrix)
-    decision = left_right_line_decision(left_matrix,right_matrix,line_matrix)
+    # decision = left_right_line_decision(left_matrix,right_matrix,line_matrix)
+    # print("Decision:",decision)
+    # find_distances(line_bin,obs_bin)
+    decision = turn_decision(line_bin,obs_bin)
+    if decision is None:
+        decision = 0
     print("Decision:",decision)
-    find_distances(line_bin,obs_bin)
-
     line_img = draw_bins2(line_matrix,cv.cvtColor(line_thresh[:,:],cv.COLOR_GRAY2BGR))
     cv.imshow("lines",line_img)
     left_img = draw_bins2(left_matrix, cv.cvtColor(obs_thresh[:, :], cv.COLOR_GRAY2BGR))

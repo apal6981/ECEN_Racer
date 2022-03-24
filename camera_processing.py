@@ -72,9 +72,9 @@ def transform_birds_eye(img):
 # Bin the image
 def binner(img):
     res = 8
-    shape = (int(IMAGE_H/res), int(IMAGE_W/res))
-    warped_img = img[0:shape[0]*res, 0:shape[1]*res]
-    sh = shape[0],warped_img.shape[0]//shape[0],shape[1],warped_img.shape[1]//shape[1]
+    shape = (int(IMAGE_H / res), int(IMAGE_W / res))
+    warped_img = img[0:shape[0] * res, 0:shape[1] * res]
+    sh = shape[0], warped_img.shape[0] // shape[0], shape[1], warped_img.shape[1] // shape[1]
     return warped_img.reshape(sh).mean(-1).mean(1)
 
 
@@ -165,13 +165,16 @@ def average_turn_value(indices):
 def get_consecutive_arrays(array):
     split_indices = np.where(np.diff(array) != 1)[0] + 1
     if len(split_indices) < 1:
-        return array
-    elif len(split_indices) == 1:
-        return array[:split_indices[0]] if split_indices[0] > len(array) // 2 else array[split_indices[0]:]
+        return np.array([array])
+    # elif len(split_indices) == 1:
+    #     # return array[:split_indices[0]] if split_indices[0] > len(array) // 2 else array[split_indices[0]:]
+    #     return array
     else:
         split_indices = np.insert(split_indices, 0, 0)
-        max_diff = np.argmax(np.diff(split_indices))
-        return array[split_indices[max_diff]:split_indices[max_diff + 1]]
+        split_indices = np.append(split_indices, [len(array)])
+        # max_diff = np.argmax(np.diff(split_indices))
+        # return array[split_indices[max_diff]:split_indices[max_diff + 1]]
+        return [array[split_indices[i]:split_indices[i + 1]] for i in range(len(split_indices) - 1)]
 
 
 def check_sharp_corners(max_columns_array, array):
@@ -206,7 +209,7 @@ def hsv_line_obs_processing(img):
     lines_g = np.bitwise_and(saturation, img[:, :, 1])  # Green
     lines = np.bitwise_or(lines_b, lines_g)
     obstacles = np.bitwise_and(saturation, img[:, :, 2])  # Red
-    ret, thresh_lines = cv.threshold(lines, 175, 255, cv.THRESH_BINARY)
+    ret, thresh_lines = cv.threshold(lines, 200 , 255, cv.THRESH_BINARY)
     ret, thresh_obstacles = cv.threshold(obstacles, 210, 255, cv.THRESH_BINARY)
     # thresh_obstacles = cone_chopper(thresh_obstacles)
     return thresh_lines, thresh_obstacles
@@ -222,6 +225,7 @@ def binner3(img, w, h, pixel_count=150):
             output_array[row][column] = cv.countNonZero(
                 img[row * bin_height:row * bin_height + bin_height, column * bin_width:column * bin_width + bin_width])
     return np.where(output_array > pixel_count, 1, 0)
+
 
 def draw_bins2(matrix, image):
     bin_width = image.shape[1] // BIN_WIDTH
@@ -267,6 +271,7 @@ def create_right_turn_matrix(left_matrix):
 
 LINE_MATRIX = create_line_turn_matrix(BIN_WIDTH, BIN_HEIGHT)
 LEFT_OBS_MATRIX = create_left_turn_matrix(BIN_WIDTH, BIN_HEIGHT)
+print("left matrix:",LEFT_OBS_MATRIX)
 RIGHT_OBS_MATRIX = create_right_turn_matrix(LEFT_OBS_MATRIX)
 
 
@@ -293,62 +298,177 @@ def bin_value(matrix, mode="line"):
         return None
 
 
-def find_distances(line_matrix, cone_matrix):
-    column_indices = column_matrix(cone_matrix)
-    cones = get_consecutive_arrays(column_indices)
+def find_distances(line_matrix, cone_matrix, cones):
     # if cones == [0]:
     #     return None
-    print("cones",cones)
+    # print("cones len",len(cones))
+    if len(cones[0]) == 0:
+        return None
     # line_coordinates = tuple(zip(np.where(line_matrix ==1)))
-    
-    # for cone in cones[:1]:
-    #     # Looking left
-    #     # get first closes row where cone is
-    #     cone_bottom_row = np.where(cone_matrix[:,cone[0]])[0]
-    #     if (cone_bottom_row) == 0:
-    #         print("no cones")
-    #         continue
-    #     line_row_indices = np.where(line_matrix[cone_bottom_row[-1],:])[0]
-    #     less_indices = np.where(line_row_indices < cone[0])[0]
-    #     left_distance = abs(cone[0]-less_indices[-1]) if (less_indices) > 0 else abs(cone[0]-0)
+    cone_decision = []
+    for cone in cones:
 
-    #     # Looking right
-    #     cone_bottom_row = np.where(cone_matrix[:,cone[-1]])[0][-1]
-    #     line_row_indices = np.where(line_matrix[cone_bottom_row,:])[0]
-    #     less_indices = np.where(line_row_indices > cone[0])[0]
-    #     right_distance = abs(cone[0]-less_indices[0]) if (less_indices) > 0 else abs(cone[0]-BIN_WIDTH)
+        # print("cone",cone )
+        # Looking left
+        # get first closes row where cone is
+        cone_bottom_row = np.where(cone_matrix[:, cone[0]])[0]
+        # print("cone bottom row",cone_bottom_row)
+        left_values = []
+        if len(cone_bottom_row) == 0:
+            # print("no cones")
+            continue
+        elif len(cone_bottom_row) > 4:
+            cone_bottom_row = cone_bottom_row[-3:-1]
+        for left in cone_bottom_row:
+            line_row_indices = np.where(line_matrix[left, :])[0]
+            less_indices = np.where(line_row_indices < cone[0])[0]
+            # print("line row indices:",line_row_indices,"less indices:",less_indices)
+            left_values.append(
+                abs(cone[0] - line_row_indices[less_indices[-1]]) if len(less_indices) > 0 else abs(cone[0] - 0))
+        left_distance = min(left_values)
+        # Looking right
 
-    #     print("left_distance:",left_distance, "right_distances:",right_distance)
+        right_values = []
+        cone_bottom_row = np.where(cone_matrix[:, cone[-1]])[0]
+        # print("right cone bottom row:",cone_bottom_row)
+        if len(cone_bottom_row) > 4:
+            cone_bottom_row = cone_bottom_row[-3:-1]
+        for right in cone_bottom_row:
+            line_row_indices = np.where(line_matrix[right, :])[0]
+            greater_indices = np.where(line_row_indices > cone[0])[0]
+            # print("right line row indices:", line_row_indices, "greater indices:", greater_indices)
+            right_values.append(
+                abs(cone[-1] - line_row_indices[greater_indices[0]]) if len(greater_indices) > 0 else abs(
+                    cone[-1] - BIN_WIDTH))
+        right_distance = min(right_values)
+        cone_decision.append([left_distance, right_distance])
+        # print("left_distance:",left_distance, "right_distances:",right_distance)
 
+    return cone_decision
+
+
+def turn_decision(line_bin, obs_bin):
+    line_turn_matrix = mask_bins(line_bin, "line")
+    left_turn_matrix = mask_bins(obs_bin, "left")
+    right_turn_matrix = mask_bins(obs_bin, "right")
+
+    column_indices = np.where(max_columns(obs_bin) == 1)[0]
+    # print("column indices", column_indices)
+    cones = get_consecutive_arrays(column_indices)
+    print("cones:", cones)
+    cone_decisions = find_distances(line_bin, obs_bin, cones)
+    if cone_decisions is None:
+        line_turn = bin_value(line_turn_matrix, "line")
+        if abs(line_turn[0]) == line_turn[1]:
+            print("driving panic")
+            return line_turn[1]
+        return line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
+    else:
+        print("Cone Distances:", cone_decisions)
+        print("line decision:", bin_value(line_turn_matrix, "line"))
+        canidates = []
+        for index, individual in enumerate(cone_decisions):
+            if individual[0] == individual[1]:
+                continue
+            if individual[0] > 1:
+                canidates.append([index, 0, individual[0]])
+            if individual[1] > 1:
+                canidates.append([index, 1, individual[1]])
+        print("Canidates:",canidates)
+        if len(canidates) == 0:  # Just do normal noodle following stuff
+            line_turn = bin_value(line_turn_matrix, "line")
+            if abs(line_turn[0]) == line_turn[1]:
+                print("driving panic")
+                return line_turn[1]
+            return line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
+        else:
+            # first find largest gap
+            line_turn = bin_value(line_turn_matrix, "line")
+            greatest_distance = np.argmax(np.array(canidates)[:, 2])
+            best_canidate = canidates[greatest_distance]
+            greatest_distance = best_canidate[0]
+            if best_canidate[1] == 0:  # go left
+                if greatest_distance == 0:  # left cone
+                    left_cone_turn = bin_value(left_turn_matrix[:, cones[canidates[greatest_distance][0]]], "left")
+                    line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
+                    if line_turn_max < 0:  # same direction
+                        print("left same sign:", left_cone_turn, line_turn_max)
+                        return np.min([left_cone_turn, line_turn_max])
+                    else:
+                        print("left diff sign:", left_cone_turn)
+                        return left_cone_turn  # differing directions so cone gets preference
+                else:
+                    left_cone_turn = bin_value(
+                        left_turn_matrix[:, cones[greatest_distance]], "left")  # this is a negative number
+                    right_cone_turn = bin_value(right_turn_matrix[:, cones[greatest_distance-1]], "right")
+                    cone_choice = [left_cone_turn, right_cone_turn][np.argmax([abs(left_cone_turn), right_cone_turn])]
+                    line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
+                    if np.sign(cone_choice) == np.sign(line_turn_max):
+                        print("multiple cones left same sign:", cone_choice, line_turn_max)
+                        return line_turn_max if abs(line_turn_max) > abs(cone_choice) else cone_choice
+                    else:
+                        print("mutiple cones diff sign:", cone_choice)
+                        return cone_choice
+            else:  # go right
+                if greatest_distance - len(cone_decisions) == -1 or len(cone_decisions) == 1:  # farthest right cone
+                    right_cone_turn = bin_value(right_turn_matrix[:, cones[greatest_distance]],
+                                                "right")  # this is a positive number
+                    line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
+                    if line_turn_max > 0:  # same direction
+                        print("right single same sign:", right_cone_turn, line_turn_max)
+                        return np.max([right_cone_turn, line_turn_max])
+                    else:
+                        print("right single diff sign:", right_cone_turn)
+                        return right_cone_turn  # differing directions so cone gets preference
+                else:
+                    left_cone_turn = bin_value(
+                        left_turn_matrix[:, cones[greatest_distance+1]], "left")  # this is a negative number
+                    right_cone_turn = bin_value(left_turn_matrix[:, cones[greatest_distance]], "right")
+                    cone_choice = [left_cone_turn, right_cone_turn][np.argmax([abs(left_cone_turn), right_cone_turn])]
+                    line_turn_max = line_turn[0] if abs(line_turn[0]) > line_turn[1] else line_turn[1]
+                    if np.sign(cone_choice) == np.sign(line_turn_max):
+                        print("right mulitple same sign:", cone_choice, line_turn_max)
+                        return line_turn_max if abs(line_turn_max) > abs(cone_choice) else cone_choice
+                    else:
+                        print("right mulitiple diff sign:", cone_choice, line_turn_max)
+                        return cone_choice
+                pass
+        print(canidates)
 
 
 def left_right_line_decision(left, right, line):
     obs_value = bin_value(left, "left"), bin_value(right, "right")
     # right_value = bin_value(right, "right")
     line_values = bin_value(line, "line")
-    print("obs values:",obs_value,"line values:",line_values)
+    print("obs values:", obs_value, "line values:", line_values)
 
     obs_decision_index = np.argmin([abs(obs_value[0]), obs_value[1]])
     line_decision_index = np.argmin([abs(line_values[0]), line_values[1]])
     if obs_value == (0, 0):
         print("no objects")
-        return line_values[line_decision_index-1]
+        return line_values[line_decision_index - 1]
     if obs_decision_index < line_decision_index:
-        return obs_value[obs_decision_index] if np.max([abs(line_values[0]),line_values[1]]) <10 else line_values[line_decision_index-1]
+        return obs_value[obs_decision_index] if np.max([abs(line_values[0]), line_values[1]]) < 10 else line_values[
+            line_decision_index - 1]
     elif line_decision_index < obs_decision_index:
-        return obs_value[obs_decision_index] if np.max([abs(line_values[0]),line_values[1]]) <10 else line_values[line_decision_index-1]
+        return obs_value[obs_decision_index] if np.max([abs(line_values[0]), line_values[1]]) < 10 else line_values[
+            line_decision_index - 1]
     else:
         return obs_value[obs_decision_index] if abs(obs_value[obs_decision_index]) > abs(
             line_values[line_decision_index]) else line_values[line_decision_index]
 
+
 def create_sin_turn_values():
-    return np.array([30*np.sin(i/(2*np.pi)) for i in range(-10,11)])
+    return np.array([30 * np.sin(i / (2 * np.pi)) for i in range(-10, 11)])
+
 
 def create_larger_sin_turn_values():
-    return np.array([30*np.sin(i/(4*np.pi)) for i in range(-20,21)])
+    return np.array([30 * np.sin(i / (4 * np.pi)) for i in range(-20, 21)])
+
 
 def create_parabolic_turn_values():
-    return np.array([-1/13.35*i**2 if i < 0 else 1/13.35*i**2 for i in range(-20,21)])
+    return np.array([-1 / 13.35 * i ** 2 if i < 0 else 1 / 13.35 * i ** 2 for i in range(-20, 21)])
+
 
 SIN_TURN_VALUES = create_sin_turn_values()
 LARGER_SIN_TURN_VALUES = create_larger_sin_turn_values()
