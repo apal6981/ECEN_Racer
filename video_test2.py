@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 # import imutils
 import cv2 as cv
-import optimizer
+import optimizer_clean as optimizer
 import compare_LR # Trying to stay between left and right lines
 
 import mahotas as mh
@@ -19,21 +19,27 @@ frames_per_steering = 5
 old_steering = 0
 steering_array = np.empty(frames_per_steering)
 # try:
-cap = cv.VideoCapture('videos/ashton_derek_joint.avi')
+# cap = cv.VideoCapture('videos/derek_pd_greedy_1.avi')
+cap = cv.VideoCapture('videos/ashton_derek_joint_cones.avi')
+# cap = cv.VideoCapture('videos/ashton_derek_joint.avi')
 print("Driving Car")
 counter = 0     
-k_p = 0.8   # increase until oscillation, then half
-k_d = 0.4   # increase until minimal oscillation
-
+# k_p = 0.8   # increase until oscillation, then half
+# k_d = 0.4   # increase until minimal oscillation
+k_p = 0.8
+k_d = 0.1
 # fig = plt.figure()
 
 while(cap.isOpened()):
     counter += 1
     print("Frame: ", counter)
     ret, rgb = cap.read()
+    cv.imshow("rgb", rgb)
+    
     #frame 385-400: cone crash, should back up, check max val at that time to determin back up
     # if counter <= 11:
         # continue
+    
     hsv_img = hsv_processing(rgb)
     hsv_img = transform_birds_eye(hsv_img)
 
@@ -41,25 +47,19 @@ while(cap.isOpened()):
     # bins = chop_binner(bins, 0.25) # chop off the top 25%
     img8 = (bins).astype('uint8')
     
-    # hsv_img = hsv_img[:, 160:480]
-
-    def border(img):
-        img[:,0] = 255
-        img[:,-1] = 255
-        # img[0,:] = 255
-        # img[-1,:] = 255
-        return img
     
-    slope = optimizer.get_slope(hsv_img)
-    # print("Slope: ", slope)
+    # slope, grid_avg = optimizer.get_slope_single(hsv_img)
+    slope, grid_avg = optimizer.get_slope_global(hsv_img)
+    steering_angle, speed, old_steering = optimizer.get_steering(slope, grid_avg, old_steering, counter)
+    print("Steering:", steering_angle)
 
-    # hsv_img = border(hsv_img)
+
+    # print("Steering: ", round(steering_angle,2), "Speed:", round(speed, 2), "Slope:", slope)
     
-    blurred = cv.GaussianBlur(hsv_img, (11,11), 0)
-    ret, blurred = cv.threshold(blurred, 40, 255,cv.THRESH_BINARY)
-    cv.imshow("hsv", hsv_img)
-    cv.imshow("rgb", rgb)
-    cv.imshow("Bins", blurred)
+    # blurred = cv.GaussianBlur(hsv_img, (11,11), 0)
+    # ret, blurred = cv.threshold(blurred, 40, 255,cv.THRESH_BINARY)
+    # cv.imshow("hsv", hsv_img)
+    # cv.imshow("Bins", blurred)
     
     '''
     #########################################################
@@ -176,13 +176,13 @@ while(cap.isOpened()):
     # blurred = cv.GaussianBlur(img8, (19,9), 0)
 	# cv.imshow("blur", blurred)
     
-    steering_angle = compare_LR.direction(blurred, counter)
-    if (counter == 0):
-        old_steering = steering_angle
+    # steering_angle = compare_LR.direction(blurred, counter)
+    # if (counter == 0):
+    #     old_steering = steering_angle
 
-    # PD implementation
-    steering_angle = k_p * steering_angle - k_d * (steering_angle - old_steering)
-    old_steering = steering_angle
+    # # PD implementation
+    # steering_angle = k_p * steering_angle - k_d * (steering_angle - old_steering)
+    # old_steering = steering_angle
 
     # print("Steering: ", steering_angle)
 
