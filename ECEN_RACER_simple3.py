@@ -51,7 +51,7 @@ try:
         (time, rgb, depth, accel, gyro) = rs.getData()
 
         line_thresh, obs_thresh = hsv_line_obs_processing(rgb[80:, :])
-        line_bin = binner3(line_thresh, BIN_WIDTH, BIN_HEIGHT, pixel_count=350)
+        line_bin = binner3(line_thresh, BIN_WIDTH, BIN_HEIGHT, pixel_count=50)
         obs_bin = binner3(obs_thresh, BIN_WIDTH, BIN_HEIGHT, pixel_count=100)
         # print("\n\nline\n", line_matrix)
         # print("left\n", left_matrix)
@@ -66,9 +66,9 @@ try:
             Car.steer(0)
             t.sleep(1)
             continue
-        print("Decision:", decision, "speed:",1/250*(abs(LARGER_SIN_TURN_VALUES[decision-21])-31)**2+.75)
+        print("Decision:", decision, "speed:",1/700*(abs(LARGER_SIN_TURN_VALUES[decision-21])-31)**2+2.75)
         Car.steer(PARABOLIC_TURN_VALUES[decision-21])
-        Car.drive(1/250*(abs(LARGER_SIN_TURN_VALUES[decision-21])-31)**2+.75)
+        Car.drive(1/700*(abs(LARGER_SIN_TURN_VALUES[decision-21])-31)**2+2.75)
         # Car.drive(4 - abs(LARGER_SIN_TURN_VALUES[decision-21]) / 10)
         # if turn_values[1] > abs(turn_values[0]):
         #     Car.steer(turn_values[1])
