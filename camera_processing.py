@@ -245,12 +245,12 @@ def create_line_turn_matrix(w, h):
     mid = w // 2
     for i in range(mid):
         for j in range(h):
-            matrix[j * -1 - 1][(i - mid + 1) * -1] = max_value - j * 2.75 - i if i < 1 else max_value - j * 1.25 - i * 1.25 + 1
+            matrix[j * -1 - 1][(i - mid + 1) * -1] = max_value - j * 2.75 - i if i < 1 else max_value - j * 1.25 - i * 1.0 + 1
 
     matrix = np.where(matrix < 0, 0, matrix)
     matrix[:, mid:] = np.fliplr(matrix[:, 0:mid] * -1)
-    # matrix[BIN_HEIGHT-2][BIN_WIDTH//2-1] = 20
-    # matrix[BIN_HEIGHT-2][BIN_WIDTH//2] = -20
+    matrix[BIN_HEIGHT-1][BIN_WIDTH//2-2] = 19
+    matrix[BIN_HEIGHT-1][BIN_WIDTH//2+1] = -19
     return matrix
 
 
