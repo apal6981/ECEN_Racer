@@ -12,6 +12,9 @@ class Optimizer:
         self.further_is_good = False
         self.grid_avg_cones = 0
         self.running_avg_size = 4
+        self.num_zeros_inFront = 0
+        self.right_mean = 0
+        self.left_mean = 0
         self.grid_running_avg = np.zeros(self.running_avg_size)
         
     def _upscan(self, f):
@@ -132,6 +135,18 @@ class Optimizer:
         # paths_c, y_vals_c, grid_vals_c, y_step_c = self.greedy_global(map_cones)
         # self.grid_avg_cones = grid_vals_c.mean(axis=0)
         grid_avg = grid_vals.mean(axis=0)
+
+        height, width = bins.shape
+        front_of_vehicle= dmap[18:24, 15:50]
+        self.num_zeros_inFront = front_of_vehicle.size - np.count_nonzero(front_of_vehicle)
+
+        left_obstacles = dmap[15:29, 10:30]
+        self.left_mean = left_obstacles.mean()
+
+        right_obstacles = dmap[15:29, 30:50]
+        self.right_mean = right_obstacles.mean()
+
+
         self.grid_avg_cones = grid_avg
         if grid_vals[4:-1].mean() > grid_vals[0:4].mean():
             self.further_is_good = True
@@ -181,7 +196,7 @@ class Optimizer:
         global_slope = (top_x_val-paths[1][0])/(top_y_val-y_vals[0])    
 
         # Turn of comments to view plots and print statements
-        # '''
+        '''
         colors = ['b', 'g', 'r', 'c', 'y', 'm', 'k', 'w']
 
         plt.imshow(dmap)
@@ -210,7 +225,7 @@ class Optimizer:
 
         # plt.show()
 
-        # '''    
+        '''    
         
         return global_slope, grid_avg
 
@@ -223,7 +238,7 @@ class Optimizer:
         running_avg = self.grid_running_avg.mean()
         
         max_steering = 25
-        max_slope = 2
+        max_slope = 2.5
         max_grid = 20
         slope_step = max_steering/max_slope
         grid_step = max_steering/max_grid
@@ -268,12 +283,6 @@ class Optimizer:
         else:
             steering = steering
         
-        if abs(steering) > max_steering:    
-            if steering < 0:
-                steering = max_steering*-1
-            else:
-                steering = max_steering
-        
         # if grid_avg > 12:
         #     steering = steering / 4 # 3
         # elif grid_avg > 8:  # 13
@@ -288,22 +297,20 @@ class Optimizer:
         #     else:
         #         steering = max_steering
         
-        steering *= -1
         # steering = int(steering)
 
+        if abs(steering) > max_steering:    
+            if steering < 0:
+                steering = max_steering*-1
+            else:
+                steering = max_steering
+        steering *= -1
+
         # PD Implementation
-        if counter == 1:
-            self.old_steering = steering
-        # steering = k_p * steering + k_d * (steering - self.old_steering)
-        self.old_steering = steering
-
-        # Handling speed
-        speed = 2.5 - abs(steering) / 20
-        if abs(steering) < 5:
-            speed = 4
-
-        if speed < 0.8:
-            speed = 0.8
+        # if counter == 1:
+        #     self.old_steering = steering
+        # # steering = k_p * steering + k_d * (steering - self.old_steering)
+        # self.old_steering = steering
 
         # Letting camera noise settle before backing up
         if counter > 50:
@@ -314,6 +321,16 @@ class Optimizer:
                 print("#### Object Backup #### ", running_avg)
                 self.backup_counter = 1
                 speed = -3
+            elif self.right_mean < 1.0 and self.left_mean > 2 and self.left_mean > self.right_mean*3 and abs(steering<5):
+                print("Hard left")
+                steering = steering*1.1
+            elif self.left_mean < 1.0 and self.right_mean > 2 and self.right_mean > self.left_mean*3 and abs(steering<5):
+                print("Hard right")
+                steering = steering*1.1
+            elif self.left_mean < 1.5 and self.right_mean < 1.5:
+                print("#### Object Backup LR bounds #### ")
+                self.backup_counter = 1
+                speed = -3
 
             if self.backup_counter != 0 or backup_flag == True:
                 steering = (steering*-1)/8
@@ -321,14 +338,29 @@ class Optimizer:
                 self.backup_counter += 1
                 if self.backup_counter >= 3:
                     self.backup_counter = 0
-                
-        if counter % 1 == 0:
+        
+        if abs(steering) > max_steering:    
+            if steering < 0:
+                steering = max_steering*-1
+            else:
+                steering = max_steering
+
+        # Handling speed
+        if speed != -3:
+            speed = 2.5 - abs(steering) / 20
+            if abs(steering) < 5:
+                speed = 4
+
+            if speed < 0.8:
+                speed = 0.8
+
+
+        if counter % 5 == 0:
             # print("Speed:", speed)
-            print("#", counter, "Slope:", round(slope,3), "OG_Steering:", round(steering_1,2), "Steering:", round(steering,2), "Grid avg:", round(grid_avg,2))
-        plt.pause(0.1)
-        plt.clf()
-        cv.waitKey(0)
-        # plt.show()
+            print("#", counter, "Slope:", round(slope,3), "OG_S:", round(steering_1,2), "Steering:", round(steering,2), "Grid avg:", round(grid_avg,2), "#0's:", self.num_zeros_inFront, "LM:",round(self.left_mean,2), "RM:",round(self.right_mean,2))
+        # plt.pause(0.1)
+        # plt.clf()
+        # cv.waitKey(0)
         return steering, speed # backup flag
 
 

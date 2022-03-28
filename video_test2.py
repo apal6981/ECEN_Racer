@@ -5,22 +5,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 # import imutils
 import cv2 as cv
-import optimizer_clean as optimizer
+# import optimizer_clean as optimizer
 import compare_LR # Trying to stay between left and right lines
 
 import mahotas as mh
 from pylab import imshow, show
 import matplotlib.pyplot as plt
 
+# from optimizer_clean import *
+from optimizer_testing import *
 
 from camera_processing import *
+
+my_opt = Optimizer()
 
 frames_per_steering = 5
 old_steering = 0
 steering_array = np.empty(frames_per_steering)
 # try:
-# cap = cv.VideoCapture('videos/derek_pd_greedy_1.avi')
-cap = cv.VideoCapture('videos/ashton_derek_joint_cones.avi')
+# important frames: green car: 115, cone hit: 170, cone wall: 300, cone wall backup: 400, cone hit backup: 412
+cap = cv.VideoCapture('videos/derek_green_noodles.avi')
+# cap = cv.VideoCapture('videos/ashton_derek_joint_cones.avi')
 # cap = cv.VideoCapture('videos/ashton_derek_joint.avi')
 print("Driving Car")
 counter = 0     
@@ -29,30 +34,38 @@ counter = 0
 k_p = 0.8
 k_d = 0.1
 # fig = plt.figure()
-
+accel = np.array([0.05, 2, 0.05])
+backup_flag = False
 while(cap.isOpened()):
     counter += 1
-    print("Frame: ", counter)
+    # print("Frame: ", counter)
     ret, rgb = cap.read()
     cv.imshow("rgb", rgb)
     
     #frame 385-400: cone crash, should back up, check max val at that time to determin back up
-    # if counter <= 11:
-        # continue
+    if counter <= 160:
+        continue
+    elif counter >= 325 and counter <= 400:
+        continue
     
-    hsv_img = hsv_processing(rgb)
+    hsv_img, cones = hsv_processing(rgb)
     hsv_img = transform_birds_eye(hsv_img)
 
     bins = binner(hsv_img)
     # bins = chop_binner(bins, 0.25) # chop off the top 25%
     img8 = (bins).astype('uint8')
     
-    
-    # slope, grid_avg = optimizer.get_slope_single(hsv_img)
-    slope, grid_avg = optimizer.get_slope_global(hsv_img)
-    steering_angle, speed, old_steering = optimizer.get_steering(slope, grid_avg, old_steering, counter)
-    print("Steering:", steering_angle)
+    # Enough time to get going after initialization
+    if counter > 50:
+        if np.all(accel < 0.1):
+            backup_flag = True
+        else:
+            backup_flag = False
 
+    # slope, grid_avg = optimizer.get_slope_single(hsv_img)
+    slope, grid_avg = my_opt.get_slope_global(hsv_img, cones)
+    steering_angle, speed = my_opt.get_steering(slope, grid_avg, counter, backup_flag)
+    # print("Steering:", steering_angle)
 
     # print("Steering: ", round(steering_angle,2), "Speed:", round(speed, 2), "Slope:", slope)
     
