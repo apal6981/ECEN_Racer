@@ -245,7 +245,7 @@ def create_line_turn_matrix(w, h):
     mid = w // 2
     for i in range(mid):
         for j in range(h):
-            matrix[j * -1 - 1][(i - mid + 1) * -1] = max_value - j * 2.75 - i if i < 1 else max_value - j * 1.25 - i * 1.0 + 1
+            matrix[j * -1 - 1][(i - mid + 1) * -1] = max_value - j * 2.75 - i if i < 1 else max_value - j * 1.25 - i * 1.0 + 1 # comment this one out and uncomment the one below for better cone avoidance, both lines
             # matrix[j * -1 - 1][
             #     (i - mid + 1) * -1] = max_value - j * 3 - i if i < 1 else max_value - j * 2 - i * 2 + 1 # less aggresive turning for which helps with cones
     matrix = np.where(matrix < 0, 0, matrix)
